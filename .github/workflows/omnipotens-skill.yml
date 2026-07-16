@@ -1,0 +1,29 @@
+name: Validate Omnipotents skill
+
+on:
+  pull_request:
+    paths:
+      - '.claude/skills/omnipotens/**'
+      - 'scripts/**'
+      - '.github/workflows/omnipotens-skill.yml'
+      - 'README.md'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Test deterministic report packager
+        run: node .claude/skills/omnipotens/scripts/test.mjs
+
+      - name: Verify repository prerequisites
+        shell: pwsh
+        run: ./scripts/Test-OmnipotensRepository.ps1

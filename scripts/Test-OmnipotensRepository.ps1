@@ -7,7 +7,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $requiredPaths = @(
-    'skills/omnipotens/SKILL.md',
+    '.claude/skills/omnipotens/SKILL.md',
     'config/omnipotens-company-policy.json',
     'dependencies/Anatomia/bin/anatomia.mjs',
     'dependencies/Ludus/spec/data/okf/README.md'
