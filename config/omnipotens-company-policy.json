@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schemaVersion": 1,
+  "policyName": "Omnipotens company baseline",
+  "purpose": "Minimum operating baseline for company-managed Omnipotens analysis environments.",
+  "defaults": {
+    "requireManagedAccount": true,
+    "allowPersonalAccounts": false,
+    "allowUnapprovedExternalApps": false,
+    "allowAutonomousBrowserUse": false,
+    "allowUnapprovedWebSearch": false,
+    "allowNetworkUpload": false,
+    "workspaceAccess": "read-only",
+    "allowProductionAccess": false,
+    "allowSecretsInPrompt": false,
+    "allowedInputClassifications": [
+      "public",
+      "internal"
+    ],
+    "reportStorage": "company-access-controlled"
+  },
+  "blockedFileNames": [
+    ".env",
+    ".env.local",
+    "id_rsa",
+    "id_ed25519",
+    "credentials.json",
+    "service-account.json"
+  ],
+  "requiredAdministration": [
+    "Use an organization-managed LLM account and disable model-training opt-in.",
+    "Set the provider and application retention periods before production use.",
+    "Use a managed secret store; never place credentials in the package or prompts.",
+    "Allow only approved MCP servers, browser connectors, and external applications.",
+    "Store generated reports in an access-controlled company location."
+  ],
+  "enforcementNote": "This file is a portable policy baseline. Enforce its controls in the LLM tenant, endpoint management, network gateway, and project access controls; installing this package alone cannot enforce them."
+}

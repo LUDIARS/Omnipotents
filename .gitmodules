@@ -1,0 +1,6 @@
+[submodule "dependencies/Anatomia"]
+	path = dependencies/Anatomia
+	url = https://github.com/LUDIARS/Anatomia.git
+[submodule "dependencies/Ludus"]
+	path = dependencies/Ludus
+	url = https://github.com/LUDIARS/Ludus.git

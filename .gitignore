@@ -1,0 +1,18 @@
+# Local credentials and deployment outputs must never be committed.
+.env
+.env.*
+!.env.example
+
+# Generated packages, reports, and local runtime state.
+/release/
+/packages/
+/report/
+/omnipotens-company-backups/
+/omnipotens-company-installation.json
+/omnipotens-company-policy.json
+
+# Dependency-local and editor state.
+**/node_modules/
+*.log
+.DS_Store
+Thumbs.db
