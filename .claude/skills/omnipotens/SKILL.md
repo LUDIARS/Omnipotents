@@ -1,6 +1,6 @@
 ---
 name: omnipotens
-description: Plan and run a selectable, evidence-linked game analysis covering the eleven core design/code/UX stages plus optional development feasibility, QA/release, service operations, data/experiments, security/privacy, LiveOps, business viability, and legal/regional readiness. Use for focused or full-spectrum game reviews, design-code alignment audits, release and live-service readiness, marketability assessments, or runs that need a GUI-authored scope and a pinned academic/authoritative evidence cache.
+description: Plan and run a selectable, evidence-linked game analysis covering the eleven core design/code/UX stages plus optional feasibility, QA/release, operations, data, security, LiveOps, business, legal/region, PEGI/USK/GRAC ratings, console certification, SBOM/vendor risk, child safety, and generative-AI governance. Use for focused or full-spectrum game reviews, design-code alignment audits, release and live-service readiness, marketability assessments, or runs that need a GUI-authored scope and a pinned academic/authoritative evidence cache.
 ---
 
 # Omnipotens
@@ -145,9 +145,19 @@ Use the pinned rubrics and source metadata in [references/service-analysis-catal
 - `service.security` -> `spec/plan/17-security-trust-review.md`;
 - `service.liveops` -> `spec/plan/18-liveops-community-review.md`;
 - `service.business` -> `spec/plan/19-business-viability.md`;
-- `service.legal-region` -> `spec/plan/20-legal-region-readiness.md`.
+- `service.legal-region` -> `spec/plan/20-legal-region-readiness.md`;
+- `service.regional-ratings` -> `spec/plan/21-regional-rating-readiness.md`;
+- `service.console-certification` -> `spec/plan/22-console-certification-readiness.md`;
+- `service.sbom` -> `spec/plan/23-sbom-quality-review.md`;
+- `service.vendor-risk` -> `spec/plan/24-vendor-supply-chain-risk.md`;
+- `service.child-safety` -> `spec/plan/25-child-safety-readiness.md`;
+- `service.generative-ai-governance` -> `spec/plan/26-generative-ai-governance.md`.
 
-`service.legal-region` may be selected as a release gate before territory, storefront/platform, or release form is known. Treat each missing routing input as missing evidence and a blocker for the dependent conclusion; completion requires a routing matrix that maps every in-scope territory, storefront/platform, and release form to its applicable rating, policy, accessibility, localization, and legal sources or an explicitly owned unresolved decision.
+`service.legal-region` may be selected as a release gate before territory, storefront/platform, or release form is known. Treat each missing routing input as missing evidence and a blocker for the dependent conclusion; completion requires a routing matrix that maps every in-scope territory, storefront/platform, and release form to applicable law, store policy, rating authority, accessibility, localization, and an explicitly owned unresolved decision. Run `service.regional-ratings` for the detailed system-specific content, interaction, monetization, submission, certificate, and change-control review; never collapse PEGI, USK, GRAC, IARC, ESRB, or CERO into one numeric age score.
+
+For `service.console-certification`, keep the public onboarding sources separate from authorized platform requirements and external certification decisions. Never place NDA requirements, test IDs, portal captures, submission/build IDs, waivers, or private contacts in the reusable cache, a public report, or an external AI prompt. Call a build or module `certified` only when the platform holder's exact external decision is available.
+
+Treat `service.child-safety` and `service.generative-ai-governance` as jurisdiction/use-case routing and evidence organization, not legal advice. Check likely child access rather than intended audience alone, and route AI obligations by actor, use case, territory, affected population, model/version, and decision date. Select the narrower analysis only when its applicability question is met; do not use “full spectrum” to authorize child-data or model/vendor-contract disclosure.
 
 Do not average `not-applicable`, convert unknowns to zero, or introduce universal thresholds that the source does not establish. Keep private telemetry, revenue, incidents, moderation data, contracts, and legal advice in a project-private overlay rather than the reusable cache.
 
