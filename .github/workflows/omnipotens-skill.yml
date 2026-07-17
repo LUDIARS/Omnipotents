@@ -5,6 +5,7 @@ on:
     paths:
       - '.claude/skills/omnipotens/**'
       - 'scripts/**'
+      - 'tools/**'
       - '.github/workflows/omnipotens-skill.yml'
       - 'README.md'
   workflow_dispatch:
@@ -27,6 +28,28 @@ jobs:
       - name: Test Vitia source validation
         run: node .claude/skills/omnipotens/scripts/test-vitia-source.mjs
 
+      - name: Test selective service analysis catalog
+        run: node .claude/skills/omnipotens/scripts/test-service-analysis.mjs
+
       - name: Verify repository prerequisites
         shell: pwsh
         run: ./scripts/Test-OmnipotensRepository.ps1
+
+  planner:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Test and publish analysis planner
+        shell: pwsh
+        run: ./scripts/Publish-OmnipotensPlanner.ps1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: omnipotens-analysis-planner-win-x64
+          path: release/omnipotens-analysis-planner/Omnipotens.AnalysisPlanner.exe
+          if-no-files-found: error

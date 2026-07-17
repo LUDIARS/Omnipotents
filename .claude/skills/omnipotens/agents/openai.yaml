@@ -1,4 +1,4 @@
 interface:
   display_name: "Omnipotens"
-  short_description: "End-to-end game analysis with Vitia-backed UX review"
-  default_prompt: "Use $omnipotens to analyze a game project end to end and package all available findings into a final HTML report."
+  short_description: "Selectable full-spectrum game and service analysis"
+  default_prompt: "Use $omnipotens to select only the game and service analyses needed, pin the evidence cache, and produce an evidence-linked report."

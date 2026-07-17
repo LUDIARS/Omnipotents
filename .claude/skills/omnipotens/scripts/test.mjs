@@ -51,3 +51,5 @@ try {
   await rm(root, { recursive: true, force: true });
 }
 console.log('omnipotens report tests: ok');
+
+await import('./test-service-analysis.mjs');
