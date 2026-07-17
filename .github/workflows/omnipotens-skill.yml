@@ -24,6 +24,9 @@ jobs:
       - name: Test deterministic report packager
         run: node .claude/skills/omnipotens/scripts/test.mjs
 
+      - name: Test Vitia source validation
+        run: node .claude/skills/omnipotens/scripts/test-vitia-source.mjs
+
       - name: Verify repository prerequisites
         shell: pwsh
         run: ./scripts/Test-OmnipotensRepository.ps1

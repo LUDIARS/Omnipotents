@@ -1,6 +1,6 @@
 ---
 name: omnipotens
-description: Run an end-to-end game project analysis from planning and specification through Ludus play-taxonomy mapping, domain modeling, Anatomia code graphs, spec-code wiring, mechanics and economy analysis, AI Format and architecture-health review, UX recommendations, Vitia marketing analysis, Di discussion papers, and a consolidated final HTML report. Use for comprehensive game reviews, design-code alignment audits, marketability assessments, or the reusable eleven-stage analysis pipeline.
+description: Run an end-to-end game project analysis from planning and specification through Ludus play-taxonomy mapping, domain modeling, Anatomia code graphs, spec-code wiring, mechanics and economy analysis, AI Format and architecture-health review, Vitia-backed UX and onboarding review, label-neutral Vitia marketability analysis, Di discussion papers, and a consolidated final HTML report. Use for comprehensive game reviews, design-code alignment audits, marketability assessments, or the reusable eleven-stage analysis pipeline.
 ---
 
 # Omnipotens
@@ -9,7 +9,7 @@ Produce an evidence-linked review that connects game intent, rules, implementati
 
 ## Start the run
 
-1. Read [references/artifact-contract.md](references/artifact-contract.md).
+1. Read [references/artifact-contract.md](references/artifact-contract.md) and [references/vitia-ux-integration.md](references/vitia-ux-integration.md).
 2. Inspect repository instructions, dirty state, active sessions, and existing reports before editing.
 3. Create an isolated task branch or worktree when the shared checkout is dirty or concurrently used.
 4. Create or update `<project>/spec`; never overwrite unrelated or uncommitted work.
@@ -71,11 +71,17 @@ When retrieving a public planning page, use the user's requested access method. 
 
 ### 8. Produce the UX review
 
-- Trace onboarding, core loop, decisions, feedback, error recovery, accessibility, information density, and long-session fatigue.
+- Resolve one explicit, reviewed Vitia skill root and generate `spec/data/vitia-ux-source-manifest.json` before drawing UX conclusions. The manifest must hash the Vitia learning references and audit code actually used; never claim a Vitia-backed review from memory or a generic substitute.
+- Apply Vitia's label-neutral evidence pass as the governing rule for this stage. Bracket the project name, genre, reputation, moral framing, and proposed Vitia domains, then run the counterfactual rename check. If the evidence-equivalent renamed version changes a finding, discard that finding and repeat the pass.
+- Use the pinned Vitia `ux-onboarding.md`, `game-experience.md`, evidence, and ethics guidance. Add `monetization.md` whenever a price, purchase, subscription, ad, paid boundary, or spend pressure is material.
+- Derive game-experience signals only from evidence produced in stages 1-7. Omit unknown signals rather than scoring them as zero, state confidence, preserve the label-neutral input as `spec/data/vitia-game-experience-input.json`, run Vitia's `audit_game_experience.py`, and preserve its raw JSON as `spec/data/vitia-game-experience-audit.json`.
+- Trace onboarding, core loop, decisions, feedback, error recovery, accessibility, information density, and long-session fatigue. Include the action-discovery chain, first-stage/peak-stage continuity, and the four game-experience lenses: play promise, challenge and learning, player agency and fairness, and repeat value without compulsion.
 - Connect every proposal to a finding from stages 1-7 and state expected impact, risk, cost band, and validation method.
+- Follow the exact source, command, failure, and stage-boundary rules in [references/vitia-ux-integration.md](references/vitia-ux-integration.md). If the reviewed Vitia source or required audit code cannot be verified, mark stage 8 `blocked`; do not silently downgrade it to a generic UX review.
 
 ### 9. Analyze marketability with Vitia
 
+- Reuse the same pinned Vitia source recorded for stage 8. Stage 8 experience evidence may inform stage 9, but stage 9 domain names and scores must never be fed back into stage 8 findings.
 - Evaluate audience, problem or desire, differentiators, proof, competitive framing, trailer or store-page moments, and claim risk.
 - Separate verified selling points from hypotheses and propose tests for unverified claims.
 

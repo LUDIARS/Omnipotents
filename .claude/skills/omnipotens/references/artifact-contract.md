@@ -22,6 +22,9 @@ spec/
   data/
     game-data-contracts.md
     anatomia-architecture-review.json
+    vitia-ux-source-manifest.json
+    vitia-game-experience-input.json
+    vitia-game-experience-audit.json
     anatomia-domains/
       project.domain.json
     omnipotens-report-layout.json
@@ -49,6 +52,7 @@ report/
 - Pin every repository observation to a commit SHA and `file:line` where possible.
 - Pin external references to URL, retrieval timestamp with timezone, and page or attachment title.
 - Pin dictionary and tool outputs to version or commit plus invocation parameters.
+- Pin every Vitia UX input to its reviewed skill root, optional revision, Vitia-root-relative source path, and SHA-256 hash in `vitia-ux-source-manifest.json`. Record the exact Python invocation and input path in `tool-manifest.json`.
 - Mark claims as `source`, `code`, `analysis`, `hypothesis`, or `question` when provenance is otherwise ambiguous.
 - Do not commit secrets, signed attachment URLs, personal data, private telemetry, or raw private discussions.
 - Keep generated HTML self-contained; keep raw outputs separate from the human-readable interpretation.
@@ -57,6 +61,41 @@ report/
 - Generate one stage HTML for each configured section that has usable source data. Do not fabricate findings for missing data.
 - The final report must include only available artifacts and link specialized interactive HTML without rewriting it.
 - Record every included source path and SHA-256 hash in `omnipotens-final.manifest.json`.
+
+## Stage 8 Vitia-backed UX contract
+
+Stage 8 is not complete until its review uses a verified Vitia source manifest. Generate it with the explicit Vitia skill root; do not auto-discover an arbitrary checkout:
+
+```powershell
+node <omnipotens-skill>/scripts/vitia-source-manifest.mjs `
+  --vitia <reviewed-vitia-skill-root> `
+  --output <project>/spec/data/vitia-ux-source-manifest.json `
+  [--revision <commit-or-package-version>] `
+  [--include-monetization]
+```
+
+When there is enough observed game evidence, create a label-neutral input and run the pinned Vitia audit:
+
+```powershell
+python <reviewed-vitia-skill-root>/scripts/audit_game_experience.py `
+  <project>/spec/data/vitia-game-experience-input.json
+```
+
+Store stdout as `spec/data/vitia-game-experience-audit.json`. Omit unobserved signals; never convert unknowns to zero. The raw audit is a coverage heuristic, not a measurement of fun, player psychology, sales, or revenue.
+
+`spec/plan/10-ux-review.md` must contain:
+
+1. stage status and Vitia source-manifest link;
+2. bracketed labels and the counterfactual rename result;
+3. verified observations, inferences, confidence, and material unknowns;
+4. action-discovery and onboarding/transfer findings;
+5. first-stage to peak-stage continuity;
+6. play-promise, challenge-learning, agency-fairness, and non-compulsive repeat-value findings;
+7. paid-boundary and revenue-quality findings when monetization is material;
+8. accessibility, information-density, fatigue, and recovery findings;
+9. evidence-linked proposals with impact, risk, cost band, validation method, and harm guardrail.
+
+Do not use stage 9 Vitia domain names or domain scores as evidence for stage 8. Stage 8 may supply observed experience evidence to stage 9, never the reverse. If the Vitia source, neutrality contract, or required audit code cannot be verified, mark stage 8 `blocked` and state the downstream impact. A non-Vitia UX draft may be retained as independent work but cannot satisfy this contract.
 
 ## Status rules
 
