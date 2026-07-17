@@ -29,7 +29,22 @@ internal static class CatalogLoaderTests
         var loaded = new CatalogLoader().LoadEmbedded();
 
         TestAssert.Equal(CatalogContract.SchemaVersion, loaded.Catalog.SchemaVersion, "Embedded schema is invalid.");
-        TestAssert.True(loaded.Catalog.AnalysisOptions.Count > 0, "Embedded catalog has no analysis options.");
+        TestAssert.Equal(25, loaded.Catalog.AnalysisOptions.Count, "Embedded catalog analysis count changed.");
+        TestAssert.Equal(8, loaded.Catalog.Presets.Count, "Embedded catalog preset count changed.");
+        TestAssert.SequenceEqual(
+            new[]
+            {
+                "service.regional-ratings",
+                "service.console-certification",
+                "service.sbom",
+                "service.vendor-risk",
+                "service.child-safety",
+                "service.generative-ai-governance",
+            },
+            loaded.Catalog.AnalysisOptions
+                .Where(option => option.Order >= 290)
+                .Select(option => option.Id),
+            "Embedded catalog is missing the added service analyses.");
         TestAssert.Equal(
             CatalogContract.EmbeddedResourceName,
             loaded.SourcePath,

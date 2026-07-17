@@ -44,7 +44,7 @@ For every rubric dimension, record these fields separately:
 
 Do not average `not-applicable` into a score. Do not convert unknown values to zero. Do not invent generic gates such as “LTV/CAC must exceed 3,” “30% is the platform fee,” or “99.9% is the correct SLO.” Thresholds must come from a current contract, legal requirement, product objective, error budget, or a project-specific baseline.
 
-## Eight optional domains
+## Fourteen optional domains
 
 ### Development feasibility
 
@@ -76,10 +76,34 @@ Use `service.business` for paid acquisition, monetization, store distribution, o
 
 ### Legal and regional readiness
 
-Use `service.legal-region` for release-gate routing even when territory, storefront/platform, or release form is not yet known. Record each missing routing input as missing evidence and a blocker for the conclusions that depend on it; do not silently narrow scope to the known markets. Keep mandatory law, contractual policy, self-regulatory rating, standards, and best practices in separate layers. Completion requires a routing matrix that maps every in-scope territory, storefront/platform, and release form to its applicable rating, policy, accessibility, localization, and legal sources or an explicitly owned unresolved decision. This analysis is issue spotting and evidence organization, not legal advice.
+Use `service.legal-region` for release-gate routing even when territory, storefront/platform, or release form is not yet known. Record each missing routing input as missing evidence and a blocker for the conclusions that depend on it; do not silently narrow scope to the known markets. Keep mandatory law, contractual policy, self-regulatory rating, standards, and best practices in separate layers. Completion requires a routing matrix that maps every in-scope territory, storefront/platform, and release form to applicable law, store policy, rating authority, accessibility, localization, and an explicitly owned unresolved decision. Route detailed rating work to `service.regional-ratings`. This analysis is issue spotting and evidence organization, not legal advice.
+
+### Regional age ratings
+
+Use `service.regional-ratings` for an external release, DLC, UGC, live-content change, or rating renewal. Keep PEGI, USK, GRAC, IARC, ESRB, CERO, and other authority decisions separate: do not translate their age bands into one numeric score. Build a territory/storefront/product-form matrix; disclose content, interaction, UGC, monetization, engagement, localization, and highest-risk build evidence; and distinguish internal prediction from the authority's certificate. Missing UGC scope, an incomplete highest-risk build, an adult/restricted route mismatch, cash-out or strong speculative mechanics, or an unfiled material change is a blocker rather than a low score.
+
+### Console certification readiness
+
+Use `service.console-certification` only for PlayStation, Nintendo, Xbox, or another platform with authorized certification requirements. Public onboarding pages establish the process boundary, not the current requirement set or a pass. In the authorized environment, pin platform, generation, territory, feature, product/submission type, requirement version, candidate build, test evidence, listing/assets, exceptions, external decisions, and resubmission scope. Keep NDA text, requirement/test IDs, SDK details, portal captures, build/submission IDs, waivers, and contacts in a private annex that is never copied into the reusable cache or sent to an external AI.
+
+### SBOM quality and operations
+
+Use `service.sbom` when shipped or operated artifacts include first-party, open-source, commercial, engine/SDK, binary, container, or service dependencies. Evaluate minimum data elements, direct/transitive scope, known unknowns, schema/profile validation, build provenance, artifact binding, freshness, distribution, correction, VEX, and downstream vulnerability/license use separately. An SBOM's existence, schema pass, or low CVE count is not proof of completeness or security. Record the selected format and consumer-supported version rather than forcing the newest schema universally.
+
+### External vendor and supply-chain risk
+
+Use `service.vendor-risk` for material outsourcing, middleware, cloud, payment, moderation, analytics, AI, build, or distribution dependencies. Separate supplier maturity, inherent impact, likelihood, residual risk, and evidence confidence. Cover identity and ownership, provenance, resilience, foundational cyber practices, sub-tier concentration, product lifecycle, contract flow-down, incident collaboration, continued monitoring, and exit. Do not average away an unknown critical vendor, unsupported component, missing incident notice, unverified provenance, or sole-source dependency with no exit plan.
+
+### Child safety and age assurance
+
+Use `service.child-safety` when children are targeted or are likely to access an online game or service with data collection, chat/contact, UGC, recommendation, advertising, monetization, or another harm path. Route by territory, age band, service role, and feature. Evaluate privacy and consent, protective defaults, content/contact/recommender risk, age-assurance error and privacy costs, moderation/reporting/appeal, parental tools, monetization/nudges, risk assessments, records, and significant-change review. An adult-facing label, self-declared age, or age rating alone does not establish that child-safety duties are out of scope or satisfied.
+
+### Generative-AI governance
+
+Use `service.generative-ai-governance` when generative AI affects player-facing content, NPC/chat, UGC or moderation, support, marketing, or production output that ships. Inventory provider/deployer roles, use cases, model/vendor/version, intended and prohibited uses, affected people, training/fine-tuning/RAG/input/output rights, personal and confidential data, evaluations, human controls, disclosure/provenance, monitoring, incident, rollback, and change triggers. Route legal duties by territory, actor, use case, decision date, and affected population. A framework checklist, base-model benchmark, model card, or vendor assurance does not replace product-specific evaluation.
 
 ## Keep public cache and private overlays separate
 
-The bundled catalog may contain public source metadata and versioned public facts. Store project-specific telemetry, revenue, user acquisition, incidents, fraud labels, support messages, contracts, and legal advice only in a project-private overlay. Do not commit or send that overlay unless the user explicitly authorizes its destination and the outbound gate passes.
+The bundled catalog may contain public source metadata and versioned public facts. Store project-specific telemetry, revenue, user acquisition, incidents, fraud labels, support messages, contracts, legal advice, console requirements/results, SBOM/component inventory, vendor findings, child-safety records, AI prompts/evaluations, and model/data contracts only in a project-private overlay. Do not commit or send that overlay unless the user explicitly authorizes its destination and the outbound gate passes. Platform NDA material must remain inside its authorized environment even when a generic summary would otherwise be useful.
 
 Record the catalog version, SHA-256, selected analysis IDs, cache receipt, stale source metadata and reference facts, omitted recommended dependencies, and every local overlay path in `spec/plan/00-source-manifest.md`.

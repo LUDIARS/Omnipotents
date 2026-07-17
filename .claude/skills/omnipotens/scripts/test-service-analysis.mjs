@@ -325,7 +325,32 @@ try {
 
 const productionCatalogPath = fileURLToPath(new URL('../references/service-analysis-catalog.json', import.meta.url));
 const production = await loadServiceAnalysisCatalog(productionCatalogPath);
-assert.ok(production.catalog.analysisOptions.length >= 8);
+const addedServiceIds = [
+  'service.regional-ratings',
+  'service.console-certification',
+  'service.sbom',
+  'service.vendor-risk',
+  'service.child-safety',
+  'service.generative-ai-governance',
+];
+assert.equal(production.catalog.analysisOptions.length, 25);
+assert.equal(production.catalog.analysisOptions.filter((option) => option.group === 'service').length, 14);
+assert.equal(production.catalog.presets.length, 8);
+assert.equal(production.catalog.serviceRubrics.length, 14);
+assert.equal(production.catalog.sources.length, 60);
+assert.equal(production.catalog.referenceFacts.length, 14);
+assert.equal(production.catalog.sources.some((item) => item.cachePolicy.rawBundled), false);
+for (const id of addedServiceIds) {
+  assert.ok(production.catalog.analysisOptions.some((option) => option.id === id), `missing analysis: ${id}`);
+  assert.ok(production.catalog.serviceRubrics.some((rubricItem) => rubricItem.id === id), `missing rubric: ${id}`);
+}
+const fullSpectrum = production.catalog.presets.find((preset) => preset.id === 'full-spectrum-local');
+assert.ok(fullSpectrum);
+assert.deepEqual(
+  fullSpectrum.analysisIds.filter((id) => id.startsWith('service.')),
+  production.catalog.analysisOptions.filter((option) => option.group === 'service').map((option) => option.id),
+);
+assert.ok(production.catalog.presets.some((preset) => preset.id === 'console-release-gate'));
 assert.match(production.catalogSha256, /^[a-f0-9]{64}$/);
 
 process.stdout.write('service analysis tests: ok\n');

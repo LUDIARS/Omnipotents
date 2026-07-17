@@ -27,6 +27,12 @@ spec/
     18-liveops-community-review.md
     19-business-viability.md
     20-legal-region-readiness.md
+    21-regional-rating-readiness.md
+    22-console-certification-readiness.md
+    23-sbom-quality-review.md
+    24-vendor-supply-chain-risk.md
+    25-child-safety-readiness.md
+    26-generative-ai-governance.md
   data/
     omnipotens-run-plan.json
     omnipotens-service-evidence-cache.json
@@ -71,6 +77,7 @@ When any `service.*` option is selected, generate `omnipotens-service-evidence-c
 - Pin every Vitia UX input to its reviewed skill root, optional revision, Vitia-root-relative source path, and SHA-256 hash in `vitia-ux-source-manifest.json`. Record the exact Python invocation and input path in `tool-manifest.json`.
 - Mark claims as `source`, `code`, `analysis`, `hypothesis`, or `question` when provenance is otherwise ambiguous.
 - Do not commit secrets, signed attachment URLs, personal data, private telemetry, or raw private discussions.
+- Keep console NDA requirements/results, private SBOM/component inventories, vendor contracts/findings, child-safety records, AI prompts/evaluations, and model/data contracts in a project-private overlay. Never copy platform requirement/test IDs, SDK details, portal captures, submission/build IDs, or waivers into the reusable cache or an external AI prompt.
 - Keep generated HTML self-contained; keep raw outputs separate from the human-readable interpretation.
 - Preserve specification domain names and descriptions byte-for-byte in the Anatomia baseline input. Keep code membership, inferred additions, and tool-built generic domains in separate fields so they cannot redefine the specification.
 - Keep the pre-Di discussion paper as a durable Markdown artifact. When Di runs, record its auto-start session ID and import only the resulting discussion summary; never replace the source paper with generated debate output.
@@ -121,4 +128,8 @@ Give every selected, reached stage one status: `complete`, `partial`, `blocked`,
 
 Stage 11 runs only when `core.report` is in `resolvedAnalysisIds`. In that case it may run even when one or more prior selected stages are missing or incomplete; omit missing data from the rendered report, and fail explicitly rather than producing an empty report when no usable artifact exists. When `core.report` is not resolved, preserve existing artifacts, keep it `not-requested`, and generate no placeholder report.
 
-For a selected `service.legal-region` release gate, unknown territory, storefront/platform, or release form is missing evidence and blocks the conclusions that depend on it; it does not make the analysis `not-applicable`. Completion requires a routing matrix that maps every in-scope territory, storefront/platform, and release form to applicable rating, policy, accessibility, localization, and legal sources or an explicitly owned unresolved decision.
+For a selected `service.legal-region` release gate, unknown territory, storefront/platform, or release form is missing evidence and blocks the conclusions that depend on it; it does not make the analysis `not-applicable`. Completion requires a routing matrix that maps every in-scope territory, storefront/platform, and release form to applicable law, store policy, rating authority, accessibility, localization, and an explicitly owned unresolved decision. When a rating is required, use the selected `service.regional-ratings` artifact for the system-specific content, interaction, monetization, certificate, and change-control evidence.
+
+For a selected `service.regional-ratings` release gate, an unresolved authority or route, incomplete highest-risk build, unknown UGC/live-content scope, missing mandatory certificate, restricted/adult route mismatch, or unfiled material change blocks the affected release conclusion. Do not replace an official authority decision with a questionnaire prediction or cross-system age conversion.
+
+For a selected `service.console-certification` gate, only the platform holder's decision tied to the exact build/module/submission can establish `certified` or `pass`. Internal readiness may be `complete` as an analysis while the external certification state remains pending, failed, or unknown; preserve both states without copying confidential evidence into the public artifact.
