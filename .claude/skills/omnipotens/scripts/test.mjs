@@ -57,3 +57,5 @@ try {
 await runReportHardeningTests();
 await runReportPublicationTests();
 console.log('omnipotens report tests: ok');
+
+await import('./test-service-analysis.mjs');

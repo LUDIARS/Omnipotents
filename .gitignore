@@ -13,6 +13,10 @@
 
 # Dependency-local and editor state.
 **/node_modules/
+**/bin/
+**/obj/
+.vs/
+*.user
 *.log
 .DS_Store
 Thumbs.db

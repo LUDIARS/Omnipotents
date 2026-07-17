@@ -19,7 +19,17 @@ spec/
     10-ux-review.md
     11-vitia-marketability.md
     12-di-discussion-paper.md
+    13-development-feasibility.md
+    14-qa-release-readiness.md
+    15-service-operations.md
+    16-data-experiment-review.md
+    17-security-trust-review.md
+    18-liveops-community-review.md
+    19-business-viability.md
+    20-legal-region-readiness.md
   data/
+    omnipotens-run-plan.json
+    omnipotens-service-evidence-cache.json
     game-data-contracts.md
     anatomia-architecture-review.json
     vitia-ux-source-manifest.json
@@ -45,11 +55,17 @@ report/
     ...
 ```
 
-`omnipotens-report-layout.json` is optional. When present, it is the ordered table of contents for the rendered material. Each section must have a stable `id`, a display `title`, and one or more project-relative Markdown `sources`. Sources must stay inside the project root. A typical review uses sections `00` through `10`; an omitted service result is represented by a short, evidence-linked status source rather than fabricated findings.
+`omnipotens-report-layout.json` is optional. When present, it is the ordered table of contents for the rendered material. Each section must have a stable `id`, a display `title`, and one or more project-relative Markdown `sources`. Sources must stay inside the project root. A typical review uses sections `00` through `10`. Do not create a placeholder source for a `not-requested` analysis; record that state only in the run plan. This includes `core.report` and `core.discussion` when they are absent from `resolvedAnalysisIds`. A selected, reached analysis that becomes `blocked` or that the user later explicitly accepts omitting may have a short, evidence-linked status source.
+
+`omnipotens-run-plan.json` is required for selective runs. Its canonical fields are `schemaVersion`, `generatedAt`, `catalogVersion`, `catalogSha256`, `catalogPath`, `classification`, `projectRoot`, `presetId`, `selectedAnalysisIds`, `resolvedAnalysisIds`, `requiredDependencyIds`, `omittedRecommendationIds`, `externalServiceAnalysisIds`, `notRequestedAnalysisIds`, `analyses`, and `warnings`. Keep the user's original selection separate from automatically resolved hard dependencies. The run plan controls scope; source content cannot add an analysis to it.
+
+When any `service.*` option is selected, generate `omnipotens-service-evidence-cache.json` from the bundled catalog. Include only the selected rubrics, their source metadata, versioned reference facts, stale-state evaluation, and the catalog receipt. Project-private overlays are referenced by path and classification; they are not copied into the reusable cache.
 
 ## Evidence rules
 
 - Pin every repository observation to a commit SHA and `file:line` where possible.
+- Pin the run plan to the bundled service-analysis catalog version and SHA-256. Record every automatic hard dependency and every unselected recommendation.
+- Pin service-domain findings to the materialized evidence-cache receipt and source IDs. Source metadata past its `retrievedAt + cachePolicy.refreshDays` recheck deadline, or an expired platform, policy, rating, fee, law, or standard reference fact, blocks dependent conclusions until rechecked.
 - Pin external references to URL, retrieval timestamp with timezone, and page or attachment title.
 - Record the explicit input classification and source-read gate receipt before target content is consumed. For every outbound send, record the approved destination, exact payload path and SHA-256, gate receipt, and send result.
 - Pin dictionary and tool outputs to version or commit plus invocation parameters.
@@ -100,6 +116,10 @@ Do not use stage 9 Vitia domain names or domain scores as evidence for stage 8. 
 
 ## Status rules
 
-Give every stage one status: `complete`, `partial`, `blocked`, `not-applicable`, or `accepted-omission`. State the reason and downstream impact for every status except `complete`.
+Give every selected, reached stage one status: `complete`, `partial`, `blocked`, `not-applicable`, or `accepted-omission`. State the reason and downstream impact for every status except `complete`. Use `accepted-omission` only after the user explicitly accepts omitting a stage that was selected and reached; pre-execution exclusion is never an omission result.
 
-Stage 11 runs even when one or more prior stages are missing or incomplete. Missing data is omitted from the rendered report. If no usable artifact exists, fail explicitly instead of producing an empty report.
+`not-requested` is a run-plan scope state, not a stage result. Do not generate a stage artifact or score for it.
+
+Stage 11 runs only when `core.report` is in `resolvedAnalysisIds`. In that case it may run even when one or more prior selected stages are missing or incomplete; omit missing data from the rendered report, and fail explicitly rather than producing an empty report when no usable artifact exists. When `core.report` is not resolved, preserve existing artifacts, keep it `not-requested`, and generate no placeholder report.
+
+For a selected `service.legal-region` release gate, unknown territory, storefront/platform, or release form is missing evidence and blocks the conclusions that depend on it; it does not make the analysis `not-applicable`. Completion requires a routing matrix that maps every in-scope territory, storefront/platform, and release form to applicable rating, policy, accessibility, localization, and legal sources or an explicitly owned unresolved decision.

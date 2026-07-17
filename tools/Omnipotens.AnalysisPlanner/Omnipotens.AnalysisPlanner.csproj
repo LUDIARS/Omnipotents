@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AssemblyName>Omnipotens.AnalysisPlanner</AssemblyName>
+    <RootNamespace>Omnipotens.AnalysisPlanner</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Omnipotens.AnalysisPlanner.Core\Omnipotens.AnalysisPlanner.Core.csproj" />
+  </ItemGroup>
+</Project>
