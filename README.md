@@ -5,12 +5,15 @@
 ## 内容
 
 - `skills/omnipotens/`: 分析パイプラインとレポート生成スクリプト
+- Vitiaスキル: UX段階で使用する、ラベル中立なオンボーディング・ゲーム体験・課金監査の正本（実行時に明示パスとSHA-256を固定）
 - `dependencies/Anatomia/`: コード・ドメイン分析（Git submodule）
 - `dependencies/Ludus/`: プレイ分類・OKF辞書（Git submodule）
 - `config/`: 企業利用時の安全な既定ポリシー
 - `scripts/`: 依存関係の初期化、リポジトリ検査、スキル配布パッケージの作成・導入
 
 依存関係の詳細は [DEPENDENCIES.md](DEPENDENCIES.md) を参照してください。
+
+UX分析では、レビュー済みのVitiaスキルを明示的に指定します。Omnipotentsは使用した学習資料と監査コードを `spec/data/vitia-ux-source-manifest.json` にハッシュ固定し、取得不能時に一般的なUX知識へ黙って置き換えません。
 
 ## クローンと初期化
 
