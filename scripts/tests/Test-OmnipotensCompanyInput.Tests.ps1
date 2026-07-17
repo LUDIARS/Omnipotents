@@ -62,6 +62,8 @@ function Assert-PreflightFails {
     catch {
         $message = $_.Exception.Message
     }
+    # Expected native failures must not leak into the hosting pwsh process.
+    $global:LASTEXITCODE = 0
     if ($null -eq $message) {
         throw "FAIL: $Name was expected to fail."
     }
