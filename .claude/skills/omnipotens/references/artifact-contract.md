@@ -51,6 +51,7 @@ report/
 
 - Pin every repository observation to a commit SHA and `file:line` where possible.
 - Pin external references to URL, retrieval timestamp with timezone, and page or attachment title.
+- Record the explicit input classification and source-read gate receipt before target content is consumed. For every outbound send, record the approved destination, exact payload path and SHA-256, gate receipt, and send result.
 - Pin dictionary and tool outputs to version or commit plus invocation parameters.
 - Pin every Vitia UX input to its reviewed skill root, optional revision, Vitia-root-relative source path, and SHA-256 hash in `vitia-ux-source-manifest.json`. Record the exact Python invocation and input path in `tool-manifest.json`.
 - Mark claims as `source`, `code`, `analysis`, `hypothesis`, or `question` when provenance is otherwise ambiguous.
