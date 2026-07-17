@@ -8,6 +8,9 @@ $ErrorActionPreference = 'Stop'
 
 $requiredPaths = @(
     'skills/omnipotens/SKILL.md',
+    'skills/omnipotens/references/vitia-ux-integration.md',
+    'skills/omnipotens/scripts/vitia-source-manifest.mjs',
+    'skills/omnipotens/scripts/lib/vitia-source.mjs',
     'config/omnipotens-company-policy.json',
     'dependencies/Anatomia/bin/anatomia.mjs',
     'dependencies/Ludus/spec/data/okf/README.md'
