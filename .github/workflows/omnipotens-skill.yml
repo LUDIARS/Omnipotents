@@ -1,0 +1,43 @@
+name: Validate Omnipotents skill
+
+on:
+  pull_request:
+    paths:
+      - '.claude/skills/omnipotens/**'
+      - 'scripts/**'
+      - '.github/workflows/omnipotens-skill.yml'
+      - 'README.md'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Test deterministic report packager
+        run: node .claude/skills/omnipotens/scripts/test.mjs
+
+      - name: Test Vitia source validation
+        run: node .claude/skills/omnipotens/scripts/test-vitia-source.mjs
+
+      - name: Test untrusted input boundary
+        run: node .claude/skills/omnipotens/scripts/test-input-gate.mjs
+
+      - name: Test repository integrity verification
+        shell: pwsh
+        run: ./scripts/tests/Test-OmnipotensRepository.Tests.ps1
+
+      - name: Test company input preflight bridge
+        shell: pwsh
+        run: ./scripts/tests/Test-OmnipotensCompanyInput.Tests.ps1
+
+      - name: Verify repository prerequisites
+        shell: pwsh
+        run: ./scripts/Test-OmnipotensRepository.ps1

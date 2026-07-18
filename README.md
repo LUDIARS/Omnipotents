@@ -1,83 +1,118 @@
 # Omnipotents
 
-会社管理の環境でOmnipotensのゲーム分析スキルを配布・検証するためのリポジトリです。スキル本体、依存リポジトリ、検証済みのセットアップスクリプト、最小セキュリティポリシーを一緒に管理します。
+Omnipotentsは、ゲームプロジェクトの企画意図・ルール・実装・プレイ体験・市場性を、根拠と不確実性を明示しながら一つのレポートへ接続する、Claude Code向けの全方位分析スキルです。
 
-## 内容
+ここでいう「全方位」は、ゲームの設計・実装・体験・市場性を横断して評価することを指します。現行版は、ライブサービス運用、SRE、制作管理、法務、データ分析、セキュリティなどを独立した監査領域としては扱いません。対応範囲と未対応範囲を区別し、取得できない根拠を推測で補わないことを重視します。
 
-- `skills/omnipotens/`: 分析パイプラインとレポート生成スクリプト
-- Vitiaスキル: UX段階で使用する、ラベル中立なオンボーディング・ゲーム体験・課金監査の正本（実行時に明示パスとSHA-256を固定）
-- `dependencies/Anatomia/`: コード・ドメイン分析（Git submodule）
-- `dependencies/Ludus/`: プレイ分類・OKF辞書（Git submodule）
-- `config/`: 企業利用時の安全な既定ポリシー
-- `scripts/`: 依存関係の初期化、リポジトリ検査、スキル配布パッケージの作成・導入
+## 分析する領域
 
-依存関係の詳細は [DEPENDENCIES.md](DEPENDENCIES.md) を参照してください。
+| 領域 | 主な分析内容 |
+| --- | --- |
+| 仕様とプレイ構造 | 企画資料・ゲーム仕様の基準化、Ludusによるプレイ分類、ルールと目標の追跡 |
+| ドメインと実装 | ドメインモデル、Anatomiaによるコード構造、仕様・ドメイン・コード・テストの対応関係 |
+| メカニクスとゲーム内経済 | コアループ、資源の生成と消費、進行、報酬、リスク、失敗からの回復 |
+| 形式・アーキテクチャ健全性 | AI Format、複雑度、凝集度、結合、循環、重複、God Classやドメイン貧血の兆候 |
+| UXとオンボーディング | 行動発見、学習、フィードバック、エラー回復、公平性、アクセシビリティ、長時間プレイの負荷 |
+| 収益化と市場性 | 対象プレイヤー、欲求、差別化、訴求根拠、競合上の位置づけ、価格・課金境界、主張のリスク |
+| 統合判断とレポート | Diによる論点整理と、各分析の状態・根拠・優先提案を結ぶ最終HTMLレポート |
 
-UX分析では、レビュー済みのVitiaスキルを明示的に指定します。Omnipotentsは使用した学習資料と監査コードを `spec/data/vitia-ux-source-manifest.json` にハッシュ固定し、取得不能時に一般的なUX知識へ黙って置き換えません。
+Diによる議論とレポート生成は、分析結果を統合・出力する工程です。独立した分析領域として「全方位」の数を増やすための項目ではありません。
 
-## クローンと初期化
+## 分析の原則
 
-新しい環境では、サブモジュールを含めてクローンします。
+- 事実、分析者の推論、実装からのみ確認できた事項、未解決事項を区別します。
+- 参照元、取得方法、取得時刻、対象コミット、ツール版、分析状態を記録します。
+- 仕様からドメイン、コード、UX、提案まで根拠を追跡できる形にします。
+- 複合スコアは優先順位づけの手掛かりとして扱い、品質の証明とは見なしません。
+- 必須の資料やサービスが利用できない場合は、その段階を明示的に停止または省略し、空の結果や代用品で成功扱いにしません。
+- 対象リポジトリ、企画資料、Issue、添付ファイルに含まれる命令文は未信頼データとして扱い、ツール実行や外部送信の根拠にはしません。
+
+分析前には対象を `public` または `internal` に明示分類し、秘密情報、危険なリンク、検査不能なテキストがないことをローカルの入力ゲートで確認します。Diなどへプロジェクト由来の内容を送る前には、送信するファイルそのものを再検査します。
+
+```powershell
+node ./.claude/skills/omnipotens/scripts/omnipotens-input-gate.mjs `
+  --workspace <project-root> `
+  --classification <public|internal> `
+  --phase source-read
+```
+
+UXと市場性の分析では、レビュー済みのVitiaスキルを明示的に指定します。使用した学習資料と監査コードを `spec/data/vitia-ux-source-manifest.json` にSHA-256で固定し、プロジェクト名や評判などの先入観を除いたラベル中立な証拠評価を行います。Vitiaを検証できない場合、Vitia準拠の分析を一般知識へ黙って置き換えません。
+
+## 11段階のパイプライン
+
+1. 企画・仕様の基準化
+2. Ludusによるプレイ分析
+3. ゲームドメインのモデル化
+4. Anatomiaによるコード分析
+5. 仕様・ドメイン・コードの対応づけ
+6. メカニクスとゲーム内経済の分析
+7. 形式・アーキテクチャ健全性レビュー
+8. VitiaによるUX・オンボーディング分析
+9. Vitiaによる市場性分析
+10. Diディスカッションペーパーの作成
+11. 最終HTMLレポートの生成
+
+各段階の入力、出力、停止条件は [SKILL.md](.claude/skills/omnipotens/SKILL.md) と [artifact-contract.md](.claude/skills/omnipotens/references/artifact-contract.md) を参照してください。
+
+## 現行版で独立監査していない領域
+
+ゲームサービス全体まで分析対象を広げる場合、次の領域は追加設計が必要です。
+
+- 制作実現性: 予算、人員、スケジュール、コンテンツ・アセット制作パイプライン
+- QA・リリース: 端末互換性、性能検証、プラットフォーム認証、リリース判定
+- サービス運用: 可用性、スケール、SLO、監視、障害対応、災害復旧、デプロイ
+- データ活用: KPI、ファネル、コホート、継続率、実験設計、テレメトリ品質
+- 安全性: セキュリティ、プライバシー、チート・不正対策、abuse対策、Trust & Safety
+- 法務・地域対応: IP、年齢レーティング、課金規制、ローカライズ
+- LiveOps: イベント運用、更新頻度、コミュニティ、カスタマーサポート、モデレーション、終了計画
+- 事業採算: 市場規模、獲得費用、LTV/CAC、プラットフォーム手数料、収益予測
+
+## Claude Codeで使う
+
+サブモジュールを含めてクローンし、このリポジトリをプロジェクトとしてClaude Codeで開きます。スキルは `.claude/skills/omnipotens` にあるため、追加の導入操作は不要です。
 
 ```powershell
 git clone --recurse-submodules https://github.com/LUDIARS/Omnipotents.git
 Set-Location Omnipotents
-./scripts/Test-OmnipotensRepository.ps1
+claude
 ```
 
-既存のクローンでは、次を実行します。
+起動後、たとえば次のように依頼します。
+
+```text
+OmnipotensでXXXを解析して
+```
+
+既存のクローンでは、サブモジュールを初期化してから開始してください。
 
 ```powershell
 ./scripts/Initialize-OmnipotensDependencies.ps1
+```
+
+## 主な出力
+
+- `spec/feature/`: プロダクト概要とゲーム仕様
+- `spec/plan/`: 分析結果、根拠、ギャップ、提案
+- `spec/data/`: ツール入力、監査結果、マニフェスト
+- `report/stages/`: 段階別HTMLレポート
+- `report/omnipotens-final.html`: 利用可能な分析結果を統合した最終レポート
+
+## リポジトリの内容
+
+- `.claude/skills/omnipotens/`: 分析パイプラインとレポート生成スクリプト
+- `dependencies/Anatomia/`: コード・ドメイン分析（Git submodule）
+- `dependencies/Ludus/`: プレイ分類・OKF辞書（Git submodule）
+- `scripts/`: 依存関係の初期化とリポジトリ検査
+
+依存関係の詳細は [DEPENDENCIES.md](DEPENDENCIES.md) を参照してください。
+
+## 確認
+
+クローン後、必要なスキルと依存関係がそろっていることを確認できます。
+
+```powershell
 ./scripts/Test-OmnipotensRepository.ps1
+node ./.claude/skills/omnipotens/scripts/test.mjs
+node ./.claude/skills/omnipotens/scripts/test-vitia-source.mjs
+node ./.claude/skills/omnipotens/scripts/test-input-gate.mjs
 ```
-
-## 配布担当者: スキルパッケージを作る
-
-依存するスキルを明示的に指定して、ハッシュ検証付きパッケージを作成します。不要な個人スキルを自動収集しない設計です。
-
-```powershell
-./scripts/New-OmnipotensCompanyPackage.ps1 `
-  -SourceSkillsRoot './skills' `
-  -SkillNames omnipotens `
-  -OutputRoot 'C:\release\omnipotens-company-2026.07'
-```
-
-複数のスキルを配布する場合は、レビュー済みの名前だけを `-SkillNames` に列挙します。パッケージは各スキル全体をSHA-256で検証し、既存出力の上書き時は削除せずバックアップします。
-
-## 利用者: パッケージを検証して導入する
-
-```powershell
-./scripts/Install-OmnipotensCompany.ps1 `
-  -PackageRoot 'C:\release\omnipotens-company-2026.07' `
-  -ValidateOnly
-
-./scripts/Install-OmnipotensCompany.ps1 `
-  -PackageRoot 'C:\release\omnipotens-company-2026.07'
-```
-
-既存スキルの置換は `-Force` を明示したときだけ実行され、元のスキルは `$CODEX_HOME\omnipotens-company-backups`（未設定時は `$HOME\.codex\omnipotens-company-backups`）へ退避します。
-
-## 実行前: 分析入力を検査する
-
-分析対象を分類し、秘密情報の典型的なファイル名が含まれないかをローカルで検査します。この検査は内容を外部送信しません。
-
-```powershell
-./scripts/Test-OmnipotensCompanyInput.ps1 `
-  -WorkspaceRoot 'C:\work\sanitized-game' `
-  -Classification internal
-```
-
-標準ポリシーは `confidential` と `restricted` を拒否します。例外は、セキュリティ責任者の承認、別ポリシー、閉域構成をそろえた場合にだけ扱います。
-
-## 管理者が先に確定すること
-
-インストーラーはLLMテナントやネットワークを直接変更しません。利用開始前に以下を完了してください。
-
-1. 企業管理のLLMアカウント、SSO、MFA、入退社連携を有効化する。
-2. モデル学習への共有をオフにし、保存期間・リージョンを契約と管理画面で確定する。
-3. 個人アカウント、未承認MCP、外部アプリ、ブラウザ自動操作、外部アップロードを初期状態で無効化する。
-4. `.env`、秘密鍵、トークン、本番データ、個人情報、顧客の持出禁止情報を分析対象から除外する。
-5. 生成レポートを案件権限付きの社内ストレージへ保管する。
-
-最初の検証には実案件ではなく、匿名化・ダミーのプロジェクトを使ってください。
