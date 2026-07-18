@@ -5,6 +5,8 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { generateReport } from './lib/generate-report.mjs';
 import { renderMarkdown } from './lib/markdown.mjs';
+import { runReportHardeningTests } from './test-report-hardening.mjs';
+import { runReportPublicationTests } from './test-report-publication.mjs';
 
 assert.match(renderMarkdown('# 見出し\n\n| A | B |\n|---|---|\n| 1 | **強調** |'), /class="table-scroll"/);
 assert.doesNotMatch(renderMarkdown('<script>alert(1)</script>'), /<script>/);
@@ -46,8 +48,12 @@ try {
   await writeFile(join(fallbackRoot, 'spec', 'only.md'), '# Only\n\n利用可能な資料です。', 'utf8');
   const fallback = await generateReport({ projectRoot: fallbackRoot });
   assert.equal(fallback.stages, 1);
-  await assert.rejects(() => generateReport({ projectRoot: join(root, 'empty') }), /No Omnipotens artifacts/);
+  const emptyRoot = join(root, 'empty');
+  await mkdir(emptyRoot);
+  await assert.rejects(() => generateReport({ projectRoot: emptyRoot }), /No Omnipotens artifacts/);
 } finally {
   await rm(root, { recursive: true, force: true });
 }
+await runReportHardeningTests();
+await runReportPublicationTests();
 console.log('omnipotens report tests: ok');

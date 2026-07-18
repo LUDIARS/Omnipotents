@@ -1,128 +1,106 @@
-import { createHash } from 'node:crypto';
-import { access, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { basename, dirname, extname, join, relative, resolve } from 'node:path';
-import { discoverFiles } from './files.mjs';
-import { enrichArtifact, renderFinalReport, renderStageReport } from './report-renderer.mjs';
-
-const sha256 = (content) => createHash('sha256').update(content).digest('hex');
-const kinds = new Map([['.md', 'markdown'], ['.html', 'html'], ['.json', 'json']]);
+import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { buildReportInputModel, stageOutputFilename } from './report-input-model.mjs';
+import { assertReportOutputOwnership } from './report-output-ownership.mjs';
+import { createReportPathBoundary, windowsSafePathKey } from './report-path-boundary.mjs';
+import { publishReportGeneration } from './report-publication.mjs';
+import { renderFinalReport, renderStageReport } from './report-renderer.mjs';
 
 function portable(value) {
   return value.replace(/\\/g, '/');
 }
 
-function slug(value) {
-  return String(value)
-    .normalize('NFKC')
-    .replace(/[^\p{L}\p{N}]+/gu, '-')
-    .replace(/^-|-$/g, '')
-    .toLowerCase() || 'report';
+function requirePathString(value, label) {
+  if (typeof value !== 'string' || value.trim().length === 0 || value.includes('\0')) {
+    throw new TypeError(`${label} must be a non-empty path string.`);
+  }
+  return value;
 }
 
-function titleWithoutId(title) {
-  return String(title).replace(/^\d{2}\.\s*/, '').trim();
+function validateOptions({ projectRoot, specRoot, output, layoutPath, title, includes, generatedAt }) {
+  requirePathString(projectRoot, 'projectRoot');
+  if (specRoot !== undefined) requirePathString(specRoot, 'specRoot');
+  if (output !== undefined) requirePathString(output, 'output');
+  if (layoutPath !== undefined) requirePathString(layoutPath, 'layoutPath');
+  if (title !== undefined && typeof title !== 'string') throw new TypeError('title must be a string when provided.');
+  if (typeof generatedAt !== 'string') throw new TypeError('generatedAt must be a string.');
+  if (!Array.isArray(includes)) throw new TypeError('includes must be an array.');
+  includes.forEach((item, index) => requirePathString(item, `includes[${index}]`));
 }
 
-async function exists(filePath) {
-  try {
-    await access(filePath);
-    return true;
-  } catch {
-    return false;
+function isInside(root, candidate) {
+  const pathFromRoot = relative(windowsSafePathKey(root), windowsSafePathKey(candidate));
+  return pathFromRoot === ''
+    || (!isAbsolute(pathFromRoot) && pathFromRoot !== '..' && !pathFromRoot.startsWith(`..${sep}`));
+}
+
+function assertInputDoesNotOverlapPublication(input, label, { finalOutput, manifestPath, stagesDir }) {
+  const inputKey = windowsSafePathKey(input);
+  if (inputKey === windowsSafePathKey(finalOutput) || inputKey === windowsSafePathKey(manifestPath)) {
+    throw new Error(`${label} must not also be a generated report output: ${input}`);
+  }
+  if (isInside(stagesDir, input)) {
+    throw new Error(`${label} must not be inside the generated stages directory: ${input}`);
   }
 }
 
-function resolveProjectFile(project, input) {
-  const filePath = resolve(project, input);
-  const projectRelative = relative(project, filePath);
-  if (!projectRelative || projectRelative.startsWith('..') || resolve(project, projectRelative) !== filePath) {
-    throw new Error(`Report source must be inside the project: ${input}`);
-  }
-  return filePath;
+async function validatePublicationTargets(boundary, { reportsDir, finalOutput, manifestPath, stagesDir }) {
+  await boundary.assertOutputDirectory(reportsDir, 'Report output directory');
+  await boundary.assertOutputFile(finalOutput, 'Final report output');
+  await boundary.assertOutputFile(manifestPath, 'Report manifest output');
+  await boundary.assertOutputDirectory(stagesDir, 'Report stages output directory');
+  await assertReportOutputOwnership({ boundary, reportsDir, finalOutput, manifestPath, stagesDir });
 }
 
-async function loadLayout(layoutPath) {
-  if (!(await exists(layoutPath))) return null;
-  const layout = JSON.parse(await readFile(layoutPath, 'utf8'));
-  if (!Array.isArray(layout.sections) || layout.sections.length === 0) {
-    throw new Error('Report layout must contain a non-empty sections array.');
-  }
-  return layout;
-}
+function renderGeneration({ projectTitle, stages, evidence, reportsDir, stagesDir, finalOutput, generatedAt }) {
+  const stageOutputs = [];
+  const stageReports = stages.map((stage) => {
+    const filename = stageOutputFilename(stage);
+    const targetPath = join(stagesDir, filename);
+    const artifacts = stage.artifacts.map((item) => ({
+      ...item,
+      outputHref: item.kind === 'html' ? portable(relative(stagesDir, item.path)) : '',
+    }));
+    stageOutputs.push({ stageId: stage.id, path: portable(relative(reportsDir, targetPath)) });
+    return {
+      filename,
+      content: renderStageReport({ projectTitle, stage: { ...stage, artifacts }, generatedAt }),
+    };
+  });
 
-async function readArtifact({ project, filePath, stageId, stageTitle, explicit = false }) {
-  const kind = kinds.get(extname(filePath).toLowerCase());
-  if (!kind) throw new Error(`Unsupported report artifact: ${filePath}`);
-  const content = await readFile(filePath, 'utf8');
-  const artifact = {
-    stageId,
-    stageTitle,
-    path: filePath,
-    relativePath: portable(relative(project, filePath)),
-    name: basename(filePath),
-    kind,
-    explicit,
+  const finalStages = stages.map((stage) => ({
+    ...stage,
+    artifacts: stage.artifacts.map((item) => ({
+      ...item,
+      outputHref: item.kind === 'html' ? portable(relative(reportsDir, item.path)) : '',
+    })),
+  }));
+  const finalContent = renderFinalReport({
+    projectTitle,
+    stages: finalStages,
+    generatedAt,
+    sourceCount: evidence.length,
+  });
+  const sources = evidence.map((item) => ({
+    stage: item.stageId || 'support',
+    path: item.relativePath,
+    kind: item.kind,
+    sha256: item.sha256,
+  }));
+  const manifest = {
+    schemaVersion: 2,
+    project: projectTitle,
+    ...(generatedAt ? { generatedAt } : {}),
+    output: basename(finalOutput),
+    files: sources.map(({ path, sha256: hash }) => ({ path, sha256: hash })),
+    sources,
+    stageReports: stageOutputs,
   };
-  return { ...enrichArtifact(artifact, content), sha256: sha256(content) };
-}
-
-async function safeDiscover(root, extensions) {
-  if (!(await exists(root))) return [];
-  return discoverFiles(root, extensions);
-}
-
-async function buildLayoutStages({ project, layout }) {
-  const stages = [];
-  const seenIds = new Set();
-  for (const section of layout.sections) {
-    const id = String(section.id ?? '').trim();
-    const displayTitle = String(section.title ?? '').trim();
-    const title = titleWithoutId(displayTitle);
-    if (!id || !title || !Array.isArray(section.sources) || section.sources.length === 0) {
-      throw new Error('Each report layout section requires id, title, and sources.');
-    }
-    if (seenIds.has(id)) throw new Error(`Duplicate report section id: ${id}`);
-    seenIds.add(id);
-    const paths = [...section.sources, ...(Array.isArray(section.artifacts) ? section.artifacts : [])];
-    const artifacts = [];
-    for (const source of paths) {
-      const filePath = resolveProjectFile(project, source);
-      if (!(await exists(filePath))) throw new Error(`Report layout source does not exist: ${source}`);
-      artifacts.push(await readArtifact({ project, filePath, stageId: id, stageTitle: title }));
-    }
-    stages.push({ id, title, artifacts });
-  }
-  return stages;
-}
-
-async function buildFallbackStages({ project, spec, reportsDir, output, includes }) {
-  const markdownFiles = await safeDiscover(spec, ['.md']);
-  const stages = [];
-  for (let index = 0; index < markdownFiles.length; index += 1) {
-    const id = String(index + 1).padStart(2, '0');
-    const artifact = await readArtifact({ project, filePath: markdownFiles[index], stageId: id, stageTitle: '' });
-    stages.push({ id, title: artifact.title, artifacts: [{ ...artifact, stageTitle: artifact.title }] });
-  }
-  const topLevel = (await safeDiscover(reportsDir, ['.html', '.json'])).filter((filePath) =>
-    dirname(filePath) === reportsDir
-    && resolve(filePath) !== resolve(output)
-    && basename(filePath) !== 'omnipotens-final.manifest.json'
-  );
-  const extraPaths = [...topLevel, ...includes.map((item) => resolve(item))];
-  if (extraPaths.length) {
-    const artifacts = [];
-    for (const filePath of extraPaths) {
-      if (await exists(filePath)) artifacts.push(await readArtifact({ project, filePath, stageId: '99', stageTitle: '関連レポート', explicit: true }));
-    }
-    if (artifacts.length) stages.push({ id: '99', title: '関連レポート', artifacts });
-  }
-  return stages;
-}
-
-function uniqueByPath(items) {
-  const unique = new Map();
-  for (const item of items) unique.set(resolve(item.path).toLowerCase(), item);
-  return [...unique.values()].sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+  return {
+    stageReports,
+    stageOutputs,
+    finalContent,
+    manifestContent: `${JSON.stringify(manifest, null, 2)}\n`,
+  };
 }
 
 export async function generateReport({
@@ -134,82 +112,72 @@ export async function generateReport({
   includes = [],
   generatedAt = '',
 }) {
-  const project = resolve(projectRoot);
-  const spec = resolve(specRoot ?? join(project, 'spec'));
-  const finalOutput = resolve(output ?? join(project, 'report', 'omnipotens-final.html'));
+  validateOptions({ projectRoot, specRoot, output, layoutPath, title, includes, generatedAt });
+  const boundary = await createReportPathBoundary(resolve(projectRoot));
+  const project = boundary.project;
+  const spec = resolve(specRoot === undefined ? join(project, 'spec') : specRoot);
+  const finalOutput = resolve(output === undefined ? join(project, 'report', 'omnipotens-final.html') : output);
+  if (extname(finalOutput).toLocaleLowerCase('en-US') !== '.html') {
+    throw new Error(`Final report output must use the .html extension: ${finalOutput}`);
+  }
   const reportsDir = dirname(finalOutput);
   const stagesDir = join(reportsDir, 'stages');
-  const selectedLayoutPath = resolve(layoutPath ?? join(spec, 'data', 'omnipotens-report-layout.json'));
-  const layout = await loadLayout(selectedLayoutPath);
-  const projectTitle = title || basename(project);
-  const effectiveGeneratedAt = generatedAt || layout?.generatedAt || '';
-
-  const stages = layout
-    ? await buildLayoutStages({ project, layout })
-    : await buildFallbackStages({ project, spec, reportsDir, output: finalOutput, includes });
-  if (stages.length === 0) throw new Error(`No Omnipotens artifacts found under ${spec}. Refusing to create an empty report.`);
-
-  await rm(stagesDir, { recursive: true, force: true });
-  await mkdir(stagesDir, { recursive: true });
-  const stageOutputs = [];
-  for (const stage of stages) {
-    const filename = `${stage.id}-${slug(stage.title)}.html`;
-    const stageOutput = join(stagesDir, filename);
-    const artifacts = stage.artifacts.map((item) => ({
-      ...item,
-      outputHref: item.kind === 'html' ? portable(relative(stagesDir, item.path)) : '',
-    }));
-    await writeFile(stageOutput, renderStageReport({ projectTitle, stage: { ...stage, artifacts }, generatedAt: effectiveGeneratedAt }), 'utf8');
-    stageOutputs.push({ stageId: stage.id, path: portable(relative(reportsDir, stageOutput)) });
-  }
-
-  const finalStages = stages.map((stage) => ({
-    ...stage,
-    artifacts: stage.artifacts.map((item) => ({
-      ...item,
-      outputHref: item.kind === 'html' ? portable(relative(reportsDir, item.path)) : '',
-    })),
-  }));
-
-  const specEvidence = await safeDiscover(spec, ['.md', '.html', '.json']);
-  const topLevelEvidence = (await safeDiscover(reportsDir, ['.html', '.json'])).filter((filePath) =>
-    dirname(filePath) === reportsDir
-    && resolve(filePath) !== finalOutput
-    && basename(filePath) !== 'omnipotens-final.manifest.json'
-  );
-  const stagedArtifacts = stages.flatMap((stage) => stage.artifacts);
-  const evidence = [...stagedArtifacts];
-  const stagedPaths = new Set(stagedArtifacts.map((item) => resolve(item.path).toLowerCase()));
-  for (const filePath of [...specEvidence, ...topLevelEvidence, ...includes.map((item) => resolve(item))]) {
-    if (!(await exists(filePath)) || stagedPaths.has(resolve(filePath).toLowerCase())) continue;
-    evidence.push(await readArtifact({ project, filePath, stageId: '', stageTitle: '' }));
-  }
-  const uniqueEvidence = uniqueByPath(evidence);
-
-  await mkdir(reportsDir, { recursive: true });
-  await writeFile(finalOutput, renderFinalReport({
-    projectTitle,
-    stages: finalStages,
-    generatedAt: effectiveGeneratedAt,
-    sourceCount: uniqueEvidence.length,
-  }), 'utf8');
-
   const manifestPath = join(reportsDir, 'omnipotens-final.manifest.json');
-  const sources = uniqueEvidence.map((item) => ({
-    stage: item.stageId || 'support',
-    path: item.relativePath,
-    kind: item.kind,
-    sha256: item.sha256,
-  }));
-  const manifest = {
-    schemaVersion: 2,
-    project: projectTitle,
-    ...(effectiveGeneratedAt ? { generatedAt: effectiveGeneratedAt } : {}),
-    output: basename(finalOutput),
-    files: sources.map(({ path, sha256: hash }) => ({ path, sha256: hash })),
-    sources,
-    stageReports: stageOutputs,
+  const selectedLayoutPath = resolve(layoutPath === undefined
+    ? join(spec, 'data', 'omnipotens-report-layout.json')
+    : layoutPath);
+  const resolvedIncludes = includes.map((item) => resolve(item));
+  const publicationTargets = { reportsDir, finalOutput, manifestPath, stagesDir };
+
+  const specInspection = await boundary.assertOptionalDirectory(spec, 'Report spec directory');
+  if (specRoot !== undefined && !specInspection.exists) {
+    throw new Error(`Explicit report spec directory does not exist: ${spec}`);
+  }
+  await validatePublicationTargets(boundary, publicationTargets);
+  assertInputDoesNotOverlapPublication(selectedLayoutPath, 'Report layout', publicationTargets);
+  for (const include of resolvedIncludes) {
+    assertInputDoesNotOverlapPublication(include, 'Explicit report include', publicationTargets);
+  }
+
+  const inputModel = await buildReportInputModel({
+    boundary,
+    project,
+    spec,
+    reportsDir,
+    output: finalOutput,
+    manifestPath,
+    layoutPath: selectedLayoutPath,
+    isExplicitLayout: layoutPath !== undefined,
+    includes: resolvedIncludes,
+  });
+  for (const evidence of inputModel.evidence) {
+    assertInputDoesNotOverlapPublication(evidence.path, 'Report evidence', publicationTargets);
+  }
+
+  const projectTitle = title || basename(project);
+  const effectiveGeneratedAt = generatedAt || inputModel.layoutGeneratedAt || '';
+  const generation = renderGeneration({
+    projectTitle,
+    stages: inputModel.stages,
+    evidence: inputModel.evidence,
+    reportsDir,
+    stagesDir,
+    finalOutput,
+    generatedAt: effectiveGeneratedAt,
+  });
+  await publishReportGeneration({
+    ...publicationTargets,
+    finalContent: generation.finalContent,
+    manifestContent: generation.manifestContent,
+    stageReports: generation.stageReports,
+    validateTargets: () => validatePublicationTargets(boundary, publicationTargets),
+  });
+
+  return {
+    output: finalOutput,
+    manifest: manifestPath,
+    stages: inputModel.stages.length,
+    sources: inputModel.evidence.length,
+    stageOutputs: generation.stageOutputs,
   };
-  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
-  return { output: finalOutput, manifest: manifestPath, stages: stages.length, sources: uniqueEvidence.length, stageOutputs };
 }

@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "allowedClassifications": [
+    "public",
+    "internal"
+  ],
+  "excludedDirectoryNames": [
+    ".git",
+    ".cache",
+    ".venv",
+    "node_modules",
+    "vendor",
+    "dist",
+    "build",
+    "bin",
+    "obj",
+    "Library",
+    "Temp",
+    "Intermediate",
+    "Saved"
+  ],
+  "blockedFileNames": [
+    ".env",
+    ".env.local",
+    ".env.production",
+    "id_rsa",
+    "id_ed25519",
+    "credentials.json",
+    "service-account.json",
+    "secrets.json",
+    "token.json",
+    "kubeconfig"
+  ],
+  "blockedFileNamePrefixes": [
+    ".env."
+  ],
+  "blockedFileNameSuffixes": [
+    ".pem",
+    ".key",
+    ".p12",
+    ".pfx",
+    ".jks",
+    ".keystore"
+  ],
+  "textFileExtensions": [
+    ".c",
+    ".cc",
+    ".cfg",
+    ".cpp",
+    ".cs",
+    ".csproj",
+    ".css",
+    ".csv",
+    ".gd",
+    ".glsl",
+    ".go",
+    ".gradle",
+    ".h",
+    ".hlsl",
+    ".hpp",
+    ".html",
+    ".ini",
+    ".java",
+    ".js",
+    ".json",
+    ".jsx",
+    ".kt",
+    ".lock",
+    ".lua",
+    ".md",
+    ".meta",
+    ".mjs",
+    ".prefab",
+    ".properties",
+    ".ps1",
+    ".psd1",
+    ".psm1",
+    ".py",
+    ".rb",
+    ".rs",
+    ".sh",
+    ".sql",
+    ".swift",
+    ".tres",
+    ".tscn",
+    ".toml",
+    ".ts",
+    ".tsx",
+    ".txt",
+    ".unity",
+    ".uplugin",
+    ".uproject",
+    ".usf",
+    ".vcxproj",
+    ".xml",
+    ".yaml",
+    ".yml"
+  ],
+  "textFileNames": [
+    "dockerfile",
+    "gemfile",
+    "license",
+    "makefile",
+    "readme"
+  ],
+  "maxTextFileBytes": 2097152,
+  "contentPatterns": [
+    {
+      "id": "private-key",
+      "pattern": "-----BEGIN (?:[A-Z0-9 ]+ )?PRIVATE KEY-----",
+      "flags": "i"
+    },
+    {
+      "id": "aws-access-key",
+      "pattern": "\\bAKIA[0-9A-Z]{16}\\b",
+      "flags": ""
+    },
+    {
+      "id": "github-token",
+      "pattern": "\\b(?:gh[pousr]_[A-Za-z0-9]{24,}|github_pat_[A-Za-z0-9_]{20,})\\b",
+      "flags": ""
+    },
+    {
+      "id": "openai-api-key",
+      "pattern": "\\bsk-(?:proj-)?[A-Za-z0-9_-]{20,}\\b",
+      "flags": ""
+    },
+    {
+      "id": "slack-token",
+      "pattern": "\\bxox[baprs]-[A-Za-z0-9-]{20,}\\b",
+      "flags": ""
+    }
+  ]
+}
