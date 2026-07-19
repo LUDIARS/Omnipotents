@@ -51,8 +51,8 @@ try {
   assert.ok(html.indexOf('各レイヤでの解析データは以下') < html.indexOf('遊びの構造スコア'));
   assert.match(html, /メカニクス解析/);
   assert.match(html, /architecture-review\.html/);
-  assert.doesNotMatch(html, /偏差値50/);
-  assert.doesNotMatch(html, /一般読者・高校生向け/);
+  assert.doesNotMatch(html, /audience-note/);
+  assert.doesNotMatch(html, /assumedAcademicDeviation/);
   assert.doesNotMatch(html, /根拠付きの概要です/);
   assert.match(html, /Vitia 市場性スコア（高い順）/);
   assert.match(html, /遊びの構造スコア/);
