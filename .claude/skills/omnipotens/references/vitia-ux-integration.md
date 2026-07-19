@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Stage 8 uses Vitia's reviewed learning data to evaluate observable UX and game-experience integrity. Vitia remains the source of truth: Omnipotents records and hashes the files it used instead of copying their contents or maintaining a second scoring model.
+Stage 8 uses Vitia's reviewed learning data to evaluate observable UX and game-experience integrity. Vitia remains the source of truth: Omnipotens records and hashes the files it used instead of copying their contents or maintaining a second scoring model.
 
 Label neutrality is the governing rule. A title, franchise, genre, reputation, moral description, source framing, or proposed seven-domain label must not alter an evidence-equivalent UX finding, risk boundary, or recommendation.
 

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "project": "ProjectName",
+  "generatedAt": "2026-07-19T12:00:00+09:00",
+  "executiveSummary": {
+    "play-logic": { "id": "play-logic", "title": "遊びのロジック", "beginner": "遊びの要点。", "highResolution": "根拠と確度を含む詳細。", "missingInformation": [], "missingImplementation": [] },
+    "code": { "id": "code", "title": "コード内容", "beginner": "実装の要点。", "highResolution": "構造指標と追跡可能な根拠。", "missingInformation": [], "missingImplementation": [] },
+    "ux": { "id": "ux", "title": "UX", "beginner": "体験の要点。", "highResolution": "観察、推論、確度、検証方法。", "missingInformation": [], "missingImplementation": [] },
+    "market": { "id": "market", "title": "市場分析", "beginner": "市場性の要点。", "highResolution": "訴求根拠、反証条件、検証方法。", "missingInformation": [], "missingImplementation": [] }
+  },
+  "additionalAnalyses": [],
+  "aiFormatScores": [
+    { "label": "仕様整合性", "score": 7, "maxScore": 10, "rationale": "評価根拠。", "sourceRefs": ["spec/plan/09-aiformat-architecture-review.md"], "missingInformation": [], "missingImplementation": [] }
+  ],
+  "vitiaScores": [
+    { "label": "差別化", "score": 8, "maxScore": 10, "rationale": "市場優位性の根拠。", "sourceRefs": ["spec/plan/11-vitia-marketability.md"], "marketAdvantage": true, "missingInformation": [], "missingImplementation": [] }
+  ],
+  "ludus": {
+    "novelty": { "score": 6, "maxScore": 10, "rationale": "既存要素の組み合わせに関する評価。", "sourceRefs": ["spec/plan/03-ludus-analysis.md"], "missingInformation": [], "missingImplementation": [] },
+    "recommendedImplementations": [
+      { "title": "選択結果の予告", "dictionaryEntries": ["choice.telegraph"], "proposal": "分岐前に結果の種類を表示する。", "uxConnection": "意思決定の納得感と学習可能性を高める。", "priority": "高", "missingInformation": [], "missingImplementation": [] }
+    ]
+  }
+}

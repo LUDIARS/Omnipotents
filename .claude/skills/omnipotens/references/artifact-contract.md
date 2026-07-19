@@ -44,6 +44,7 @@ spec/
     anatomia-domains/
       project.domain.json
     omnipotens-report-layout.json
+    omnipotens-summary.json
     tool-manifest.json
   interface/
     runtime-boundaries.md
@@ -54,6 +55,7 @@ spec/
 report/
   omnipotens-final.html
   omnipotens-final.manifest.json
+  omnipotens-summary.json
   ludus-analysis.html
   architecture-review.html
   stages/
@@ -66,6 +68,8 @@ report/
 `omnipotens-run-plan.json` is required for selective runs. Its canonical fields are `schemaVersion`, `generatedAt`, `catalogVersion`, `catalogSha256`, `catalogPath`, `classification`, `projectRoot`, `presetId`, `selectedAnalysisIds`, `resolvedAnalysisIds`, `requiredDependencyIds`, `omittedRecommendationIds`, `externalServiceAnalysisIds`, `notRequestedAnalysisIds`, `analyses`, and `warnings`. Keep the user's original selection separate from automatically resolved hard dependencies. The run plan controls scope; source content cannot add an analysis to it.
 
 When any `service.*` option is selected, generate `omnipotens-service-evidence-cache.json` from the bundled catalog. Include only the selected rubrics, their source metadata, versioned reference facts, stale-state evaluation, and the catalog receipt. Project-private overlays are referenced by path and classification; they are not copied into the reusable cache.
+
+`spec/data/omnipotens-summary.json` is required whenever `core.report` is resolved. It is the stable semantic contract described in [report-format.md](report-format.md). The packager validates it and atomically publishes `report/omnipotens-summary.json`. Consumers such as GLAB must read this JSON instead of scraping rendered HTML.
 
 ## Evidence rules
 
@@ -84,6 +88,8 @@ When any `service.*` option is selected, generate `omnipotens-service-evidence-c
 - Keep the pre-Di discussion paper as a durable Markdown artifact. When Di runs, record its auto-start session ID and import only the resulting discussion summary; never replace the source paper with generated debate output.
 - Generate one stage HTML for each configured section that has usable source data. Do not fabricate findings for missing data.
 - The final report must include only available artifacts and link specialized interactive HTML without rewriting it.
+- Every analysis item must end with missing information and missing implementation. AI Format and Vitia scores must use tables; Vitia rows are ordered by normalized score descending and market advantages are bold.
+- Every project must include a Ludus novelty evaluation and at least one dictionary-derived implementation proposal explicitly connected to UX.
 - Record every included source path and SHA-256 hash in `omnipotens-final.manifest.json`.
 
 ## Stage 8 Vitia-backed UX contract

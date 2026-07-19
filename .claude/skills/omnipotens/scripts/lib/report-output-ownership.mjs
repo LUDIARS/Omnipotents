@@ -19,14 +19,20 @@ function pathKey(value) {
   return value.normalize('NFKC').toLocaleLowerCase('en-US');
 }
 
-function validateOwnershipManifest(manifest, { reportsDir, finalOutput, stagesDir, manifestPath }) {
-  if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest) || manifest.schemaVersion !== 2) {
+function validateOwnershipManifest(manifest, { reportsDir, finalOutput, stagesDir, manifestPath, summaryOutputPath, summaryExists }) {
+  if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest) || ![2, 3].includes(manifest.schemaVersion)) {
     throw new Error(`Existing report outputs have no supported ownership manifest: ${manifestPath}`);
   }
   if (manifest.output !== basename(finalOutput)) {
     throw new Error(
       `Existing report manifest owns '${String(manifest.output)}', not requested output '${basename(finalOutput)}'.`,
     );
+  }
+  if (manifest.schemaVersion === 3 && (manifest.summary !== basename(summaryOutputPath) || !summaryExists)) {
+    throw new Error(`Existing report ownership manifest has no owned summary: ${manifestPath}`);
+  }
+  if (manifest.schemaVersion === 2 && summaryExists) {
+    throw new Error(`Existing report summary is not owned by its legacy manifest: ${summaryOutputPath}`);
   }
   if (!Array.isArray(manifest.sources) || !Array.isArray(manifest.files)) {
     throw new Error(`Existing report ownership manifest is incomplete: ${manifestPath}`);
@@ -77,13 +83,15 @@ export async function assertReportOutputOwnership({
   finalOutput,
   manifestPath,
   stagesDir,
+  summaryOutputPath,
 }) {
-  const [finalExists, manifestExists, stagesExist] = await Promise.all([
+  const [finalExists, manifestExists, stagesExist, summaryExists] = await Promise.all([
     boundary.pathExists(finalOutput, 'Final report output'),
     boundary.pathExists(manifestPath, 'Report manifest output'),
     boundary.pathExists(stagesDir, 'Report stages output directory'),
+    boundary.pathExists(summaryOutputPath, 'Report summary output'),
   ]);
-  if (!finalExists && !manifestExists && !stagesExist) return;
+  if (!finalExists && !manifestExists && !stagesExist && !summaryExists) return;
   if (!finalExists || !manifestExists || !stagesExist) {
     throw new Error(
       `Refusing to replace an incomplete or unowned report generation: ${manifestPath}`,
@@ -96,6 +104,8 @@ export async function assertReportOutputOwnership({
   } catch (error) {
     throw new Error(`Existing report ownership manifest is invalid: ${manifestPath}`, { cause: error });
   }
-  const ownership = validateOwnershipManifest(manifest, { reportsDir, finalOutput, stagesDir, manifestPath });
+  const ownership = validateOwnershipManifest(manifest, {
+    reportsDir, finalOutput, stagesDir, manifestPath, summaryOutputPath, summaryExists,
+  });
   await assertOwnedStageDirectory(stagesDir, ownership);
 }

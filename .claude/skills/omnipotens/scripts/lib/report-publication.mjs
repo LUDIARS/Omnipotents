@@ -118,15 +118,17 @@ export async function publishReportGeneration({
   reportsDir,
   finalOutput,
   manifestPath,
+  summaryOutputPath,
   stagesDir,
   finalContent,
   manifestContent,
+  summaryContent,
   stageReports,
   validateTargets = async () => {},
   operations: operationOverrides,
 }) {
-  if (typeof finalContent !== 'string' || typeof manifestContent !== 'string') {
-    throw new TypeError('Final report and manifest publication content must be strings.');
+  if (typeof finalContent !== 'string' || typeof manifestContent !== 'string' || typeof summaryContent !== 'string') {
+    throw new TypeError('Final report, manifest, and summary publication content must be strings.');
   }
   if (typeof validateTargets !== 'function') throw new TypeError('validateTargets must be a function.');
   validateStageReports(stageReports);
@@ -150,12 +152,14 @@ export async function publishReportGeneration({
     const stagedStages = join(stagingRoot, 'stages');
     const stagedFinal = join(stagingRoot, 'final.html');
     const stagedManifest = join(stagingRoot, 'manifest.json');
+    const stagedSummary = join(stagingRoot, 'summary.json');
     await operations.mkdir(stagedStages);
     for (const report of stageReports) {
       await operations.writeFile(join(stagedStages, report.filename), report.content, { encoding: 'utf8', flag: 'wx' });
     }
     await operations.writeFile(stagedFinal, finalContent, { encoding: 'utf8', flag: 'wx' });
     await operations.writeFile(stagedManifest, manifestContent, { encoding: 'utf8', flag: 'wx' });
+    await operations.writeFile(stagedSummary, summaryContent, { encoding: 'utf8', flag: 'wx' });
 
     await validateTargets();
     backupRoot = await operations.mkdtemp(join(reportsDir, '.omnipotens-report-backup-'));
@@ -173,6 +177,14 @@ export async function publishReportGeneration({
         staged: stagedFinal,
         target: finalOutput,
         backup: join(backupRoot, 'final.html'),
+        backedUp: false,
+        published: false,
+      },
+      {
+        name: 'analysis summary',
+        staged: stagedSummary,
+        target: summaryOutputPath,
+        backup: join(backupRoot, 'summary.json'),
         backedUp: false,
         published: false,
       },

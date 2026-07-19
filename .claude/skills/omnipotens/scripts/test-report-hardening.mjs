@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { generateReport } from './lib/generate-report.mjs';
 import { parseReportArgs } from './lib/report-cli-options.mjs';
+import { writeAnalysisSummaryFixture } from './test-fixtures.mjs';
 
 async function writeLayout(project, sections) {
   const data = join(project, 'spec', 'data');
@@ -38,6 +39,7 @@ export async function runReportHardeningTests() {
     const layoutProject = join(root, 'layout-includes');
     await mkdir(join(layoutProject, 'spec'), { recursive: true });
     await writeFile(join(layoutProject, 'spec', 'main.md'), '# Main\n\nPrimary evidence.', 'utf8');
+    await writeAnalysisSummaryFixture(layoutProject);
     await writeFile(join(layoutProject, 'extra.md'), '# Included Markdown\n\nINCLUDE_WITH_LAYOUT', 'utf8');
     await writeFile(join(layoutProject, 'extra.html'), '<!doctype html><title>Included HTML</title>', 'utf8');
     await writeLayout(layoutProject, [{ id: 'Core', title: 'Core evidence', sources: ['spec/main.md'] }]);
@@ -71,6 +73,7 @@ export async function runReportHardeningTests() {
     const fallbackProject = join(root, 'fallback-includes');
     await mkdir(join(fallbackProject, 'spec'), { recursive: true });
     await writeFile(join(fallbackProject, 'spec', 'main.md'), '# Fallback\n\nFallback evidence.', 'utf8');
+    await writeAnalysisSummaryFixture(fallbackProject);
     await writeFile(join(fallbackProject, 'extra.json'), JSON.stringify({ marker: 'INCLUDE_WITHOUT_LAYOUT' }), 'utf8');
     const fallbackResult = await generateReport({
       projectRoot: fallbackProject,
@@ -82,6 +85,7 @@ export async function runReportHardeningTests() {
     const explicitProject = join(root, 'explicit-inputs');
     await mkdir(join(explicitProject, 'spec'), { recursive: true });
     await writeFile(join(explicitProject, 'spec', 'main.md'), '# Explicit\n\nEvidence.', 'utf8');
+    await writeAnalysisSummaryFixture(explicitProject);
     await assert.rejects(
       () => generateReport({ projectRoot: explicitProject, layoutPath: join(explicitProject, 'missing-layout.json') }),
       /Explicit report layout does not exist/,
@@ -102,6 +106,7 @@ export async function runReportHardeningTests() {
     const unsafeIdProject = join(root, 'unsafe-id');
     await mkdir(join(unsafeIdProject, 'spec'), { recursive: true });
     await writeFile(join(unsafeIdProject, 'spec', 'main.md'), '# Unsafe\n\nEvidence.', 'utf8');
+    await writeAnalysisSummaryFixture(unsafeIdProject);
     await writeLayout(unsafeIdProject, [{ id: '../escape', title: 'Escape', sources: ['spec/main.md'] }]);
     await assert.rejects(() => generateReport({ projectRoot: unsafeIdProject }), /Unsafe report section id/);
     await writeLayout(unsafeIdProject, [
@@ -113,6 +118,7 @@ export async function runReportHardeningTests() {
     const containmentProject = join(root, 'containment');
     await mkdir(join(containmentProject, 'spec'), { recursive: true });
     await writeFile(join(containmentProject, 'spec', 'main.md'), '# Contained\n\nEvidence.', 'utf8');
+    await writeAnalysisSummaryFixture(containmentProject);
     const outsideFile = join(root, 'outside.md');
     await writeFile(outsideFile, '# Outside\n\nMust not be read.', 'utf8');
     await assert.rejects(
@@ -131,6 +137,7 @@ export async function runReportHardeningTests() {
     await mkdir(join(linkProject, 'spec'), { recursive: true });
     await mkdir(externalSource, { recursive: true });
     await writeFile(join(externalSource, 'linked.md'), '# Linked\n\nMust not be read.', 'utf8');
+    await writeAnalysisSummaryFixture(linkProject);
     const sourceLink = join(linkProject, 'linked-source');
     const sourceLinkCreated = await createDirectoryLink(externalSource, sourceLink);
     if (process.platform === 'win32') {
@@ -162,6 +169,7 @@ export async function runReportHardeningTests() {
     const overlapProject = join(root, 'overlap');
     await mkdir(join(overlapProject, 'spec'), { recursive: true });
     await writeFile(join(overlapProject, 'spec', 'main.md'), '# Overlap\n\nEvidence.', 'utf8');
+    await writeAnalysisSummaryFixture(overlapProject);
     await assert.rejects(
       () => generateReport({
         projectRoot: overlapProject,
@@ -173,6 +181,7 @@ export async function runReportHardeningTests() {
     const ownershipProject = join(root, 'ownership');
     await mkdir(join(ownershipProject, 'spec'), { recursive: true });
     await writeFile(join(ownershipProject, 'spec', 'main.md'), '# Ownership\n\nEvidence.', 'utf8');
+    await writeAnalysisSummaryFixture(ownershipProject);
     await mkdir(join(ownershipProject, 'stages'));
     const unrelatedStage = join(ownershipProject, 'stages', 'unrelated.txt');
     await writeFile(unrelatedStage, 'must survive', 'utf8');

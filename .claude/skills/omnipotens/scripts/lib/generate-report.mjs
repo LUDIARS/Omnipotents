@@ -4,6 +4,7 @@ import { assertReportOutputOwnership } from './report-output-ownership.mjs';
 import { createReportPathBoundary, windowsSafePathKey } from './report-path-boundary.mjs';
 import { publishReportGeneration } from './report-publication.mjs';
 import { renderFinalReport, renderStageReport } from './report-renderer.mjs';
+import { normalizeAnalysisSummary } from './analysis-summary.mjs';
 
 function portable(value) {
   return value.replace(/\\/g, '/');
@@ -33,9 +34,13 @@ function isInside(root, candidate) {
     || (!isAbsolute(pathFromRoot) && pathFromRoot !== '..' && !pathFromRoot.startsWith(`..${sep}`));
 }
 
-function assertInputDoesNotOverlapPublication(input, label, { finalOutput, manifestPath, stagesDir }) {
+function assertInputDoesNotOverlapPublication(input, label, { finalOutput, manifestPath, summaryOutputPath, stagesDir }) {
   const inputKey = windowsSafePathKey(input);
-  if (inputKey === windowsSafePathKey(finalOutput) || inputKey === windowsSafePathKey(manifestPath)) {
+  if (
+    inputKey === windowsSafePathKey(finalOutput)
+    || inputKey === windowsSafePathKey(manifestPath)
+    || inputKey === windowsSafePathKey(summaryOutputPath)
+  ) {
     throw new Error(`${label} must not also be a generated report output: ${input}`);
   }
   if (isInside(stagesDir, input)) {
@@ -43,15 +48,16 @@ function assertInputDoesNotOverlapPublication(input, label, { finalOutput, manif
   }
 }
 
-async function validatePublicationTargets(boundary, { reportsDir, finalOutput, manifestPath, stagesDir }) {
+async function validatePublicationTargets(boundary, { reportsDir, finalOutput, manifestPath, summaryOutputPath, stagesDir }) {
   await boundary.assertOutputDirectory(reportsDir, 'Report output directory');
   await boundary.assertOutputFile(finalOutput, 'Final report output');
   await boundary.assertOutputFile(manifestPath, 'Report manifest output');
+  await boundary.assertOutputFile(summaryOutputPath, 'Report summary output');
   await boundary.assertOutputDirectory(stagesDir, 'Report stages output directory');
-  await assertReportOutputOwnership({ boundary, reportsDir, finalOutput, manifestPath, stagesDir });
+  await assertReportOutputOwnership({ boundary, reportsDir, finalOutput, manifestPath, summaryOutputPath, stagesDir });
 }
 
-function renderGeneration({ projectTitle, stages, evidence, reportsDir, stagesDir, finalOutput, generatedAt }) {
+function renderGeneration({ projectTitle, stages, evidence, reportsDir, stagesDir, finalOutput, generatedAt, analysisSummary }) {
   const stageOutputs = [];
   const stageReports = stages.map((stage) => {
     const filename = stageOutputFilename(stage);
@@ -79,6 +85,7 @@ function renderGeneration({ projectTitle, stages, evidence, reportsDir, stagesDi
     stages: finalStages,
     generatedAt,
     sourceCount: evidence.length,
+    analysisSummary,
   });
   const sources = evidence.map((item) => ({
     stage: item.stageId || 'support',
@@ -87,10 +94,11 @@ function renderGeneration({ projectTitle, stages, evidence, reportsDir, stagesDi
     sha256: item.sha256,
   }));
   const manifest = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     project: projectTitle,
     ...(generatedAt ? { generatedAt } : {}),
     output: basename(finalOutput),
+    summary: 'omnipotens-summary.json',
     files: sources.map(({ path, sha256: hash }) => ({ path, sha256: hash })),
     sources,
     stageReports: stageOutputs,
@@ -99,6 +107,7 @@ function renderGeneration({ projectTitle, stages, evidence, reportsDir, stagesDi
     stageReports,
     stageOutputs,
     finalContent,
+    summaryContent: `${JSON.stringify(analysisSummary, null, 2)}\n`,
     manifestContent: `${JSON.stringify(manifest, null, 2)}\n`,
   };
 }
@@ -123,11 +132,13 @@ export async function generateReport({
   const reportsDir = dirname(finalOutput);
   const stagesDir = join(reportsDir, 'stages');
   const manifestPath = join(reportsDir, 'omnipotens-final.manifest.json');
+  const summaryOutputPath = join(reportsDir, 'omnipotens-summary.json');
+  const summarySourcePath = join(spec, 'data', 'omnipotens-summary.json');
   const selectedLayoutPath = resolve(layoutPath === undefined
     ? join(spec, 'data', 'omnipotens-report-layout.json')
     : layoutPath);
   const resolvedIncludes = includes.map((item) => resolve(item));
-  const publicationTargets = { reportsDir, finalOutput, manifestPath, stagesDir };
+  const publicationTargets = { reportsDir, finalOutput, manifestPath, summaryOutputPath, stagesDir };
 
   const specInspection = await boundary.assertOptionalDirectory(spec, 'Report spec directory');
   if (specRoot !== undefined && !specInspection.exists) {
@@ -146,10 +157,23 @@ export async function generateReport({
     reportsDir,
     output: finalOutput,
     manifestPath,
+    summaryOutputPath,
     layoutPath: selectedLayoutPath,
     isExplicitLayout: layoutPath !== undefined,
     includes: resolvedIncludes,
   });
+  if (!(await boundary.pathExists(summarySourcePath, 'Omnipotens analysis summary'))) {
+    throw new Error(`Required Omnipotens analysis summary does not exist: ${summarySourcePath}`);
+  }
+  let analysisSummary;
+  try {
+    analysisSummary = normalizeAnalysisSummary(
+      JSON.parse(await boundary.readTextFile(summarySourcePath, 'Omnipotens analysis summary')),
+      title || basename(project),
+    );
+  } catch (error) {
+    throw new Error(`Invalid Omnipotens analysis summary: ${summarySourcePath}`, { cause: error });
+  }
   for (const evidence of inputModel.evidence) {
     assertInputDoesNotOverlapPublication(evidence.path, 'Report evidence', publicationTargets);
   }
@@ -164,10 +188,12 @@ export async function generateReport({
     stagesDir,
     finalOutput,
     generatedAt: effectiveGeneratedAt,
+    analysisSummary: { ...analysisSummary, generatedAt: analysisSummary.generatedAt || effectiveGeneratedAt },
   });
   await publishReportGeneration({
     ...publicationTargets,
     finalContent: generation.finalContent,
+    summaryContent: generation.summaryContent,
     manifestContent: generation.manifestContent,
     stageReports: generation.stageReports,
     validateTargets: () => validatePublicationTargets(boundary, publicationTargets),
@@ -176,6 +202,7 @@ export async function generateReport({
   return {
     output: finalOutput,
     manifest: manifestPath,
+    summary: summaryOutputPath,
     stages: inputModel.stages.length,
     sources: inputModel.evidence.length,
     stageOutputs: generation.stageOutputs,

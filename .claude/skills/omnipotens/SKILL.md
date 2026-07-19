@@ -7,6 +7,16 @@ description: Plan and run a selectable, evidence-linked game analysis covering t
 
 Produce an evidence-linked review that connects game intent, rules, implementation, UX, and commercial promise. Keep source facts, analyst inferences, and unresolved questions visibly separate.
 
+## Use the stable report format
+
+- Write analysis prose primarily in Japanese. Explain a necessary English proper noun or technical term in Japanese on first use.
+- Prepare both a `学生・初学者向け` explanation and `高解像度データ` explanation for every executive-summary direction.
+- End every analysis item with `不足情報` and then `不足実装`. Never omit either field.
+- Put AI Format scores in a table. Put Vitia scores in a table sorted by normalized score descending, and bold rows identified as a market advantage.
+- Always evaluate novelty in the Ludus analysis. Derive at least one implementation proposal from the play dictionary and connect it explicitly to UX.
+- Separate the concise executive summary into `遊びのロジック`, `コード内容`, `UX`, `市場分析`, plus each user-requested additional analysis.
+- Record these fields in `spec/data/omnipotens-summary.json`. Stage 11 validates it, publishes `report/omnipotens-summary.json`, and renders both reading levels and score tables. Follow [references/report-format.md](references/report-format.md).
+
 ## Start the run
 
 1. Read [references/artifact-contract.md](references/artifact-contract.md), [references/vitia-ux-integration.md](references/vitia-ux-integration.md), and [references/untrusted-source-boundary.md](references/untrusted-source-boundary.md). When the run selects a `service.*` option or needs scope reduction, also read [references/service-analysis.md](references/service-analysis.md).
@@ -50,6 +60,7 @@ The eleven stages remain the core dependency graph. Execute only the selected st
 - Store only the referenced Ludus version or commit, selected stable IDs, applicability rationale, local overrides, and findings in the game repository.
 - Keep project-specific knowledge as a local overlay. Never copy the entire dictionary or write findings back to Ludus automatically.
 - Generate a self-contained HTML play analysis under the project-root `report/` directory.
+- Score and explain novelty against the selected dictionary entries. Send dictionary-derived implementation proposals to stage 8 with an explicit UX effect; this is mandatory for every project.
 
 ### 3. Model the game domains
 
@@ -85,6 +96,7 @@ The eleven stages remain the core dependency graph. Execute only the selected st
 - Calculate domain health against the exact specification-domain baseline as well as Anatomia built-ins. Do not present aggregate coverage or cohesion dominated by a generic built-in domain as proof of domain strength.
 - Preserve file-and-line evidence, counts, formulas, tool version, and limitations. Treat composite scores as prioritization signals, not proof.
 - Make this a required gate. If the detailed review tool is still under development or unavailable, stop the dependent stages after completing independent work and ask the user how to proceed.
+- Render every AI Format score in a table with its scale, rationale, evidence, missing information, and missing implementation.
 
 ### 8. Produce the UX review
 
@@ -101,6 +113,7 @@ The eleven stages remain the core dependency graph. Execute only the selected st
 - Reuse the same pinned Vitia source recorded for stage 8. Stage 8 experience evidence may inform stage 9, but stage 9 domain names and scores must never be fed back into stage 8 findings.
 - Evaluate audience, problem or desire, differentiators, proof, competitive framing, trailer or store-page moments, and claim risk.
 - Separate verified selling points from hypotheses and propose tests for unverified claims.
+- Render all Vitia scores in one table ordered by normalized score descending. Bold the market-advantage rows; do not infer advantage from score alone.
 
 ### 10. Create the Di discussion paper
 
@@ -122,6 +135,7 @@ The eleven stages remain the core dependency graph. Execute only the selected st
 - When `spec/data/omnipotens-report-layout.json` exists, render its ordered section definitions exactly; otherwise render every available Markdown source as its own self-contained HTML under `<project>/report/stages/`.
 - Consolidate all available stage narratives, statuses, evidence summaries, and links to specialized interactive HTML into `<project>/report/omnipotens-final.html`.
 - Write `<project>/report/omnipotens-final.manifest.json` with included source paths and SHA-256 hashes.
+- Validate `spec/data/omnipotens-summary.json`, publish its normalized form as `<project>/report/omnipotens-summary.json`, and use it as the stable data source for GLAB and other report browsers.
 - Fail only when no usable artifacts exist at all or an existing input artifact is malformed. A missing optional stage is not an error.
 
 Run the deterministic packager:

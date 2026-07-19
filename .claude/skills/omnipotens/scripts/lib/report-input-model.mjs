@@ -198,8 +198,10 @@ async function readRelatedArtifacts({ boundary, project, paths }) {
   return artifacts;
 }
 
-async function topLevelReportInputs({ boundary, reportsDir, output, manifestPath }) {
-  const excluded = new Set([windowsSafePathKey(output), windowsSafePathKey(manifestPath)]);
+async function topLevelReportInputs({ boundary, reportsDir, output, manifestPath, summaryOutputPath }) {
+  const excluded = new Set([
+    windowsSafePathKey(output), windowsSafePathKey(manifestPath), windowsSafePathKey(summaryOutputPath),
+  ]);
   return (await safeDiscoverTopLevel(boundary, reportsDir, ['.html', '.json'], 'Report output directory'))
     .filter((filePath) => !excluded.has(windowsSafePathKey(filePath)));
 }
@@ -281,13 +283,14 @@ export async function buildReportInputModel({
   reportsDir,
   output,
   manifestPath,
+  summaryOutputPath,
   layoutPath,
   isExplicitLayout,
   includes,
 }) {
   await validateIncludes(boundary, includes);
   const layout = await loadLayout({ boundary, layoutPath, isExplicit: isExplicitLayout });
-  const topLevelInputs = await topLevelReportInputs({ boundary, reportsDir, output, manifestPath });
+  const topLevelInputs = await topLevelReportInputs({ boundary, reportsDir, output, manifestPath, summaryOutputPath });
   const stages = layout
     ? await buildLayoutStages({ boundary, project, layout })
     : await buildFallbackStages({ boundary, project, spec, topLevelInputs, includes });

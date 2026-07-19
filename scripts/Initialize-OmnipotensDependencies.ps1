@@ -20,12 +20,12 @@ if (-not (Test-Path -LiteralPath (Join-Path $RepositoryRoot '.git'))) {
 $root = (Resolve-Path -LiteralPath $RepositoryRoot -ErrorAction Stop).Path
 & git -C $root submodule sync --recursive
 if ($LASTEXITCODE -ne 0) {
-    throw 'Failed to synchronize Omnipotents submodule URLs.'
+    throw 'Failed to synchronize Omnipotens submodule URLs.'
 }
 
 & git -C $root submodule update --init --recursive
 if ($LASTEXITCODE -ne 0) {
-    throw 'Failed to initialize Omnipotents submodules.'
+    throw 'Failed to initialize Omnipotens submodules.'
 }
 
-Write-Host "Initialized Omnipotents dependencies under $root"
+Write-Host "Initialized Omnipotens dependencies under $root"

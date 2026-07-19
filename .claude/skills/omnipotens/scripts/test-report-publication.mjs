@@ -16,17 +16,20 @@ async function seedPreviousGeneration(reportDir) {
   const stagesDir = join(reportDir, 'stages');
   const finalOutput = join(reportDir, 'omnipotens-final.html');
   const manifestPath = join(reportDir, 'omnipotens-final.manifest.json');
+  const summaryOutputPath = join(reportDir, 'omnipotens-summary.json');
   await mkdir(stagesDir, { recursive: true });
   await fsWriteFile(join(stagesDir, 'old.html'), 'old stage', 'utf8');
   await fsWriteFile(finalOutput, 'old final', 'utf8');
   await fsWriteFile(manifestPath, 'old manifest', 'utf8');
-  return { reportDir, reportsDir: reportDir, stagesDir, finalOutput, manifestPath };
+  await fsWriteFile(summaryOutputPath, 'old summary', 'utf8');
+  return { reportDir, reportsDir: reportDir, stagesDir, finalOutput, manifestPath, summaryOutputPath };
 }
 
 async function assertPreviousGeneration(targets) {
   assert.equal(await readFile(join(targets.stagesDir, 'old.html'), 'utf8'), 'old stage');
   assert.equal(await readFile(targets.finalOutput, 'utf8'), 'old final');
   assert.equal(await readFile(targets.manifestPath, 'utf8'), 'old manifest');
+  assert.equal(await readFile(targets.summaryOutputPath, 'utf8'), 'old summary');
 }
 
 function publicationRequest(targets, operations) {
@@ -34,6 +37,7 @@ function publicationRequest(targets, operations) {
     ...targets,
     finalContent: 'new final',
     manifestContent: 'new manifest',
+    summaryContent: 'new summary',
     stageReports: [{ filename: '01-new.html', content: 'new stage' }],
     operations,
   };
@@ -122,6 +126,7 @@ export async function runReportPublicationTests() {
     await publishReportGeneration(publicationRequest(successTargets));
     assert.equal(await readFile(successTargets.finalOutput, 'utf8'), 'new final');
     assert.equal(await readFile(successTargets.manifestPath, 'utf8'), 'new manifest');
+    assert.equal(await readFile(successTargets.summaryOutputPath, 'utf8'), 'new summary');
     assert.equal(await readFile(join(successTargets.stagesDir, '01-new.html'), 'utf8'), 'new stage');
     assert.deepEqual(await transientDirectories(successTargets.reportDir), []);
   } finally {
