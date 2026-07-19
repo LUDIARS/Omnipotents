@@ -16,7 +16,7 @@ const documentedSummary = JSON.parse(await readFile(
   new URL('../references/omnipotens-summary.example.json', import.meta.url),
   'utf8',
 ));
-assert.equal(normalizeAnalysisSummary(documentedSummary, 'ProjectName').schemaVersion, 2);
+assert.equal(normalizeAnalysisSummary(documentedSummary, 'ProjectName').schemaVersion, 3);
 
 const root = await mkdtemp(join(tmpdir(), 'omnipotens-'));
 try {
@@ -34,15 +34,25 @@ try {
   await writeAnalysisSummaryFixture(root);
 
   const result = await generateReport({ projectRoot: root, generatedAt: '2026-07-16', title: 'Fixture' });
-  assert.equal(result.stages, 2);
+  assert.equal(result.stages, 1);
   assert.equal(result.output, join(root, 'report', 'omnipotens-final.html'));
   const html = await readFile(result.output, 'utf8');
   assert.match(html, /OMNIPOTENS/);
   assert.match(html, /--gold:#9a6b1f/);
   assert.match(html, /エグゼクティブサマリ/);
+  assert.match(html, /総合評価：条件付きで有望/);
+  assert.match(html, /一般読者・高校生向け/);
+  assert.match(html, /偏差値50/);
+  assert.match(html, /各レイヤでの解析データは以下/);
+  assert.ok(html.indexOf('総合評価：条件付きで有望') < html.indexOf('各項目のまとめ'));
+  assert.ok(html.indexOf('各項目のまとめ') < html.indexOf('各レイヤでの解析データは以下'));
+  assert.ok(html.indexOf('各レイヤでの解析データは以下') < html.indexOf('遊びの構造スコア'));
   assert.match(html, /メカニクス解析/);
   assert.match(html, /architecture-review\.html/);
-  assert.match(html, /学生・初学者向け/);
+  assert.doesNotMatch(html, /学生・初学者向け/);
+  assert.doesNotMatch(html, /高解像度データ/);
+  assert.doesNotMatch(html, /data-profile/);
+  assert.doesNotMatch(html, /根拠付きの概要です/);
   assert.match(html, /Vitia 市場性スコア（高い順）/);
   assert.match(html, /遊びの構造スコア/);
   assert.match(html, /UXスコア（AI平均反応シミュレーション）/);
@@ -55,14 +65,17 @@ try {
   assert.match(html, /querySelector\('button\[data-theme\]'\)/);
   assert.doesNotMatch(html, /querySelector\('\[data-theme\]'\)/);
   assert.doesNotMatch(html, /#070a12/);
-  const stage = await readFile(join(report, 'stages', '00-エグゼクティブサマリ.html'), 'utf8');
-  assert.match(stage, /Stage 00/);
+  const stage = await readFile(join(report, 'stages', '04-メカニクス解析.html'), 'utf8');
+  assert.match(stage, /Stage 04/);
+  await assert.rejects(() => readFile(join(report, 'stages', '00-エグゼクティブサマリ.html'), 'utf8'));
   const manifest = JSON.parse(await readFile(result.manifest, 'utf8'));
   assert.ok(manifest.files.length >= 4);
   assert.ok(manifest.files.every((item) => /^[a-f0-9]{64}$/.test(item.sha256)));
   assert.equal(manifest.schemaVersion, 3);
+  assert.deepEqual(manifest.stageReports.map((item) => item.stageId), ['04']);
   const summary = JSON.parse(await readFile(result.summary, 'utf8'));
-  assert.equal(summary.schemaVersion, 2);
+  assert.equal(summary.schemaVersion, 3);
+  assert.equal(summary.executiveAudience.assumedAcademicDeviation, 50);
   assert.equal(summary.vitiaScores[0].label, '訴求力');
   assert.deepEqual(summary.playStructureScores.map((item) => item.id), ['idea', 'structure', 'scalability']);
   assert.deepEqual(summary.uxEvaluation.scores.map((item) => item.id), [
@@ -71,10 +84,12 @@ try {
 
   const fallbackRoot = join(root, 'fallback');
   await mkdir(join(fallbackRoot, 'spec'), { recursive: true });
+  await writeFile(join(fallbackRoot, 'spec', '00-executive-summary.md'), '# エグゼクティブサマリ\n\n旧サマリ本文です。', 'utf8');
   await writeFile(join(fallbackRoot, 'spec', 'only.md'), '# Only\n\n利用可能な資料です。', 'utf8');
   await writeAnalysisSummaryFixture(fallbackRoot);
   const fallback = await generateReport({ projectRoot: fallbackRoot });
   assert.equal(fallback.stages, 1);
+  assert.doesNotMatch(await readFile(fallback.output, 'utf8'), /旧サマリ本文です/);
   const emptyRoot = join(root, 'empty');
   await mkdir(emptyRoot);
   await assert.rejects(() => generateReport({ projectRoot: emptyRoot }), /No Omnipotens artifacts/);

@@ -66,9 +66,40 @@ function narrative(rawValue, label, expectedId, expectedTitle) {
   return {
     id,
     title: expectedTitle || text(raw.title, `${label}.title`),
-    beginner: text(raw.beginner, `${label}.beginner`),
-    highResolution: text(raw.highResolution, `${label}.highResolution`),
+    summary: text(raw.summary, `${label}.summary`),
     ...completeness(raw, label),
+  };
+}
+
+function executiveAudience(rawValue) {
+  const raw = object(rawValue, 'executiveAudience');
+  if (raw.assumedAcademicDeviation !== 50) {
+    throw new Error('executiveAudience.assumedAcademicDeviation must be 50.');
+  }
+  return {
+    assumedAcademicDeviation: 50,
+    audience: text(raw.audience, 'executiveAudience.audience'),
+    writingPolicy: nonEmptyTexts(raw.writingPolicy, 'executiveAudience.writingPolicy'),
+  };
+}
+
+function overallAssessment(rawValue) {
+  const raw = object(rawValue, 'overallAssessment');
+  const current = score(raw.score, 'overallAssessment.score');
+  const maximum = score(raw.maxScore, 'overallAssessment.maxScore');
+  if (maximum === 0 || current > maximum) {
+    throw new Error('overallAssessment.score must be between 0 and maxScore.');
+  }
+  return {
+    label: text(raw.label, 'overallAssessment.label'),
+    score: current,
+    maxScore: maximum,
+    summary: text(raw.summary, 'overallAssessment.summary'),
+    strengths: nonEmptyTexts(raw.strengths, 'overallAssessment.strengths'),
+    priorityIssues: nonEmptyTexts(raw.priorityIssues, 'overallAssessment.priorityIssues'),
+    confidence: text(raw.confidence, 'overallAssessment.confidence'),
+    sourceRefs: texts(raw.sourceRefs, 'overallAssessment.sourceRefs'),
+    ...completeness(raw, 'overallAssessment'),
   };
 }
 
@@ -155,7 +186,7 @@ function ludus(rawValue) {
 
 export function normalizeAnalysisSummary(rawValue, projectTitle) {
   const raw = object(rawValue, 'Omnipotens analysis summary');
-  if (raw.schemaVersion !== 2) throw new Error('Omnipotens analysis summary schemaVersion must be 2.');
+  if (raw.schemaVersion !== 3) throw new Error('Omnipotens analysis summary schemaVersion must be 3.');
   const directions = object(raw.executiveSummary, 'executiveSummary');
   const normalizedDirections = Object.fromEntries(REQUIRED_DIRECTIONS.map(([id, title]) => [
     id,
@@ -164,9 +195,11 @@ export function normalizeAnalysisSummary(rawValue, projectTitle) {
   const additional = raw.additionalAnalyses ?? [];
   if (!Array.isArray(additional)) throw new Error('additionalAnalyses must be an array.');
   const normalized = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     project: text(raw.project || projectTitle, 'project'),
     generatedAt: typeof raw.generatedAt === 'string' ? raw.generatedAt : '',
+    executiveAudience: executiveAudience(raw.executiveAudience),
+    overallAssessment: overallAssessment(raw.overallAssessment),
     executiveSummary: normalizedDirections,
     additionalAnalyses: additional.map((item, index) => narrative(item, `additionalAnalyses[${index}]`)),
     aiFormatScores: scoreRows(raw.aiFormatScores, 'aiFormatScores'),

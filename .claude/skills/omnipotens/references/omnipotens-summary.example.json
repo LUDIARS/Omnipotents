@@ -1,12 +1,29 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "project": "ProjectName",
   "generatedAt": "2026-07-19T12:00:00+09:00",
+  "executiveAudience": {
+    "assumedAcademicDeviation": 50,
+    "audience": "専門知識のない一般読者と高校生が、一度読んで判断の要点をつかめる文章にする。",
+    "writingPolicy": ["専門用語は日常語で言い換える", "一文を短くし、結論から書く"]
+  },
+  "overallAssessment": {
+    "label": "条件付きで有望",
+    "score": 7,
+    "maxScore": 10,
+    "summary": "遊びの核は伝わるが、初見で迷う部分を直してから広く見せるべき段階です。",
+    "strengths": ["中心となる遊びが実装と一致している"],
+    "priorityIssues": ["初見で結果を予測できる説明が不足している"],
+    "confidence": "中",
+    "sourceRefs": ["spec/plan/03-ludus-analysis.md", "spec/plan/10-ux-review.md"],
+    "missingInformation": [],
+    "missingImplementation": []
+  },
   "executiveSummary": {
-    "play-logic": { "id": "play-logic", "title": "遊びのロジック", "beginner": "遊びの要点。", "highResolution": "根拠と確度を含む詳細。", "missingInformation": [], "missingImplementation": [] },
-    "code": { "id": "code", "title": "コード内容", "beginner": "実装の要点。", "highResolution": "構造指標と追跡可能な根拠。", "missingInformation": [], "missingImplementation": [] },
-    "ux": { "id": "ux", "title": "UX", "beginner": "体験の要点。", "highResolution": "観察、推論、確度、検証方法。", "missingInformation": [], "missingImplementation": [] },
-    "market": { "id": "market", "title": "市場分析", "beginner": "市場性の要点。", "highResolution": "訴求根拠、反証条件、検証方法。", "missingInformation": [], "missingImplementation": [] }
+    "play-logic": { "id": "play-logic", "title": "遊びのロジック", "summary": "何を考え、何を選ぶ遊びなのかを短く説明する。", "missingInformation": [], "missingImplementation": [] },
+    "code": { "id": "code", "title": "コード内容", "summary": "実装できている範囲と壊れやすい部分を日常語で説明する。", "missingInformation": [], "missingImplementation": [] },
+    "ux": { "id": "ux", "title": "UX", "summary": "遊ぶ人が迷う点と、気持ちよく感じる点を説明する。", "missingInformation": [], "missingImplementation": [] },
+    "market": { "id": "market", "title": "市場分析", "summary": "誰に何が伝わり、何を確かめる必要があるかを説明する。", "missingInformation": [], "missingImplementation": [] }
   },
   "additionalAnalyses": [],
   "aiFormatScores": [

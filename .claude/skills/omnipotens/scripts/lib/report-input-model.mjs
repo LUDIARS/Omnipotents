@@ -28,6 +28,15 @@ function titleWithoutId(title) {
   return String(title).replace(/^\d{2}\.\s*/, '').trim();
 }
 
+function isLegacyExecutiveSummaryStage(stage) {
+  return stageIdKey(stage.id) === '00' && stage.title === 'エグゼクティブサマリ';
+}
+
+function isLegacyExecutiveSummaryArtifact(artifact) {
+  const filename = basename(artifact.path).normalize('NFKC').toLocaleLowerCase('en-US');
+  return filename === '00-executive-summary.md' || artifact.title === 'エグゼクティブサマリ';
+}
+
 function requireNonEmptyString(value, label) {
   if (typeof value !== 'string' || value.trim().length === 0 || value.includes('\0')) {
     throw new Error(`${label} must be a non-empty string.`);
@@ -81,7 +90,10 @@ function validateLayout(rawLayout) {
         : validatePathList(section.artifacts, `Report layout section ${id} artifacts`, { required: false }),
     };
   });
-  return { sections, generatedAt: rawLayout.generatedAt ?? '' };
+  return {
+    sections: sections.filter((section) => !isLegacyExecutiveSummaryStage(section)),
+    generatedAt: rawLayout.generatedAt ?? '',
+  };
 }
 
 async function loadLayout({ boundary, layoutPath, isExplicit }) {
@@ -210,7 +222,7 @@ async function buildFallbackStages({ boundary, project, spec, topLevelInputs, in
   const markdownFiles = await safeDiscover(boundary, spec, ['.md'], 'Report spec directory');
   const stages = [];
   for (let index = 0; index < markdownFiles.length; index += 1) {
-    const id = String(index + 1).padStart(2, '0');
+    const id = String(stages.length + 1).padStart(2, '0');
     const artifact = await readArtifact({
       boundary,
       project,
@@ -218,6 +230,7 @@ async function buildFallbackStages({ boundary, project, spec, topLevelInputs, in
       stageId: id,
       stageTitle: '',
     });
+    if (isLegacyExecutiveSummaryArtifact(artifact)) continue;
     stages.push({ id, title: artifact.title, artifacts: [{ ...artifact, stageTitle: artifact.title }] });
   }
   mergeRelatedArtifacts(stages, await readRelatedArtifacts({

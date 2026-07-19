@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 export function validAnalysisSummary(project = 'Fixture') {
   const section = (id, title) => ({
-    id, title, beginner: `${title}の要点です。`, highResolution: `${title}の根拠を含む詳細です。`,
+    id, title, summary: `${title}の要点を一般読者向けに説明します。`,
     missingInformation: [], missingImplementation: [],
   });
   const score = (label, value, marketAdvantage = false, id) => ({
@@ -14,8 +14,21 @@ export function validAnalysisSummary(project = 'Fixture') {
     missingInformation: [], missingImplementation: [],
   });
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     project,
+    executiveAudience: {
+      assumedAcademicDeviation: 50,
+      audience: '専門知識のない一般読者と高校生を想定します。',
+      writingPolicy: ['専門用語を日常語で言い換えます。'],
+    },
+    overallAssessment: {
+      label: '条件付きで有望', score: 7, maxScore: 10,
+      summary: '遊びの核は明確ですが、初見説明に改善余地があります。',
+      strengths: ['中心の遊びと実装が一致しています。'],
+      priorityIssues: ['初見で結果を予測できる説明が不足しています。'],
+      confidence: '中', sourceRefs: ['spec/main.md'],
+      missingInformation: [], missingImplementation: [],
+    },
     executiveSummary: {
       'play-logic': section('play-logic', '遊びのロジック'),
       code: section('code', 'コード内容'),

@@ -10,7 +10,10 @@ Produce an evidence-linked review that connects game intent, rules, implementati
 ## Use the stable report format
 
 - Write analysis prose primarily in Japanese. Explain a necessary English proper noun or technical term in Japanese on first use.
-- Prepare both a `学生・初学者向け` explanation and `高解像度データ` explanation for every executive-summary direction.
+- Write one integrated executive summary for general readers and high-school students with an assumed academic deviation value of 50. Use short sentences, explain necessary terms in ordinary Japanese, and do not create a second high-resolution reading profile.
+- Put an honest overall assessment at the start of the executive summary, followed by short summaries for `遊びのロジック`, `コード内容`, `UX`, `市場分析`, and every user-requested additional analysis.
+- Generate beginner-friendly prose only in the integrated executive summary. Keep every layer report as technical raw analysis data without a duplicate beginner/high-resolution pair.
+- Insert the visible boundary heading `各レイヤでの解析データは以下` between the integrated executive summary and all score tables, evidence, and layer reports.
 - End every analysis item with `不足情報` and then `不足実装`. Never omit either field.
 - Put AI Format scores in a table. Put Vitia scores in a table sorted by normalized score descending, and bold rows identified as a market advantage.
 - Review honestly: do not inflate a score to protect the concept, and do not turn unknown evidence into an average or zero. State confidence and material limits.
@@ -18,8 +21,7 @@ Produce an evidence-linked review that connects game intent, rules, implementati
 - Score UX on exactly two axes: alignment between the core experience design and implementation, and the conviction/performance of expression (the “this feels right” response). Label this as an AI simulation of average public response, not observed audience data, and record its audience model, assumptions, and limitations.
 - Score play structure on exactly three axes: idea, structure, and scalability. Judge idea by dictionary-external play and low-similarity mashups; structure by the mechanics-driven loop and avoidable structure; scalability by whether mechanics and the internal economy can produce meaningful play variations.
 - Always evaluate novelty in the Ludus analysis. Derive at least one implementation proposal from the play dictionary and connect it explicitly to UX.
-- Separate the concise executive summary into `遊びのロジック`, `コード内容`, `UX`, `市場分析`, plus each user-requested additional analysis.
-- Record these fields in `spec/data/omnipotens-summary.json`. Stage 11 validates it, publishes `report/omnipotens-summary.json`, and renders both reading levels and score tables. Follow [references/report-format.md](references/report-format.md).
+- Record the overall assessment and item summaries in `spec/data/omnipotens-summary.json`. Stage 11 validates it, publishes `report/omnipotens-summary.json`, and renders the single reader-friendly summary before the raw score and evidence layers. Follow [references/report-format.md](references/report-format.md).
 
 ## Start the run
 
@@ -138,6 +140,7 @@ The eleven stages remain the core dependency graph. Execute only the selected st
 - Collect only artifacts that actually exist. Omit missing stage data; never create placeholder findings or an empty substitute report.
 - Keep analysis Markdown under `spec/plan/`, product rules under `spec/feature/`, and data/setup/test contracts in their AI Format categories. Write every rendered HTML output under the project-root `report/` directory.
 - When `spec/data/omnipotens-report-layout.json` exists, render its ordered section definitions exactly; otherwise render every available Markdown source as its own self-contained HTML under `<project>/report/stages/`.
+- Do not configure or render a separate `00. エグゼクティブサマリ` stage. The integrated summary is rendered once at the top from `omnipotens-summary.json`; raw analysis stages begin after it. Legacy stage `00` with that title is ignored during migration.
 - Consolidate all available stage narratives, statuses, evidence summaries, and links to specialized interactive HTML into `<project>/report/omnipotens-final.html`.
 - Write `<project>/report/omnipotens-final.manifest.json` with included source paths and SHA-256 hashes.
 - Validate `spec/data/omnipotens-summary.json`, publish its normalized form as `<project>/report/omnipotens-summary.json`, and use it as the stable data source for GLAB and other report browsers.

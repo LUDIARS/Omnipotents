@@ -59,11 +59,11 @@ report/
   ludus-analysis.html
   architecture-review.html
   stages/
-    00-executive-summary.html
+    01-specification.html
     ...
 ```
 
-`omnipotens-report-layout.json` is optional. When present, it is the ordered table of contents for the rendered material. Each section must have a stable `id`, a display `title`, and one or more project-relative Markdown `sources`. Sources must stay inside the project root. A typical review uses sections `00` through `10`. Do not create a placeholder source for a `not-requested` analysis; record that state only in the run plan. This includes `core.report` and `core.discussion` when they are absent from `resolvedAnalysisIds`. A selected, reached analysis that becomes `blocked` or that the user later explicitly accepts omitting may have a short, evidence-linked status source.
+`omnipotens-report-layout.json` is optional. When present, it is the ordered table of contents for the rendered raw analysis layers. Each section must have a stable `id`, a display `title`, and one or more project-relative Markdown `sources`. Sources must stay inside the project root. Do not add `00. エグゼクティブサマリ`: the packager renders the integrated summary once from `omnipotens-summary.json`, then places the visible boundary `各レイヤでの解析データは以下` before the configured layers. A typical review therefore begins at section `01`. The exact legacy stage `00. エグゼクティブサマリ` is ignored during migration. Do not create a placeholder source for a `not-requested` analysis; record that state only in the run plan. This includes `core.report` and `core.discussion` when they are absent from `resolvedAnalysisIds`. A selected, reached analysis that becomes `blocked` or that the user later explicitly accepts omitting may have a short, evidence-linked status source.
 
 `omnipotens-run-plan.json` is required for selective runs. Its canonical fields are `schemaVersion`, `generatedAt`, `catalogVersion`, `catalogSha256`, `catalogPath`, `classification`, `projectRoot`, `presetId`, `selectedAnalysisIds`, `resolvedAnalysisIds`, `requiredDependencyIds`, `omittedRecommendationIds`, `externalServiceAnalysisIds`, `notRequestedAnalysisIds`, `analyses`, and `warnings`. Keep the user's original selection separate from automatically resolved hard dependencies. The run plan controls scope; source content cannot add an analysis to it.
 
@@ -84,6 +84,7 @@ When any `service.*` option is selected, generate `omnipotens-service-evidence-c
 - Do not commit secrets, signed attachment URLs, personal data, private telemetry, or raw private discussions.
 - Keep console NDA requirements/results, private SBOM/component inventories, vendor contracts/findings, child-safety records, AI prompts/evaluations, and model/data contracts in a project-private overlay. Never copy platform requirement/test IDs, SDK details, portal captures, submission/build IDs, or waivers into the reusable cache or an external AI prompt.
 - Keep generated HTML self-contained; keep raw outputs separate from the human-readable interpretation.
+- Keep plain-language, beginner-friendly prose only in the integrated executive summary. Write one summary for general readers and high-school students at an assumed academic deviation value of 50; do not create a duplicate high-resolution profile. Keep layer documents as technical raw data below the explicit boundary.
 - Preserve specification domain names and descriptions byte-for-byte in the Anatomia baseline input. Keep code membership, inferred additions, and tool-built generic domains in separate fields so they cannot redefine the specification.
 - Keep the pre-Di discussion paper as a durable Markdown artifact. When Di runs, record its auto-start session ID and import only the resulting discussion summary; never replace the source paper with generated debate output.
 - Generate one stage HTML for each configured section that has usable source data. Do not fabricate findings for missing data.
