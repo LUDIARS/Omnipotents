@@ -13,6 +13,10 @@ Produce an evidence-linked review that connects game intent, rules, implementati
 - Prepare both a `学生・初学者向け` explanation and `高解像度データ` explanation for every executive-summary direction.
 - End every analysis item with `不足情報` and then `不足実装`. Never omit either field.
 - Put AI Format scores in a table. Put Vitia scores in a table sorted by normalized score descending, and bold rows identified as a market advantage.
+- Review honestly: do not inflate a score to protect the concept, and do not turn unknown evidence into an average or zero. State confidence and material limits.
+- For every scored item, inspect the score and evidence before choosing `improve` or `hold`. Give one ordinary, proportionate improvement only when a real problem remains; otherwise explicitly recommend holding the current design. Never improve merely to fill the field.
+- Score UX on exactly two axes: alignment between the core experience design and implementation, and the conviction/performance of expression (the “this feels right” response). Label this as an AI simulation of average public response, not observed audience data, and record its audience model, assumptions, and limitations.
+- Score play structure on exactly three axes: idea, structure, and scalability. Judge idea by dictionary-external play and low-similarity mashups; structure by the mechanics-driven loop and avoidable structure; scalability by whether mechanics and the internal economy can produce meaningful play variations.
 - Always evaluate novelty in the Ludus analysis. Derive at least one implementation proposal from the play dictionary and connect it explicitly to UX.
 - Separate the concise executive summary into `遊びのロジック`, `コード内容`, `UX`, `市場分析`, plus each user-requested additional analysis.
 - Record these fields in `spec/data/omnipotens-summary.json`. Stage 11 validates it, publishes `report/omnipotens-summary.json`, and renders both reading levels and score tables. Follow [references/report-format.md](references/report-format.md).
@@ -105,6 +109,7 @@ The eleven stages remain the core dependency graph. Execute only the selected st
 - Use the pinned Vitia `ux-onboarding.md`, `game-experience.md`, evidence, and ethics guidance. Add `monetization.md` whenever a price, purchase, subscription, ad, paid boundary, or spend pressure is material.
 - Derive game-experience signals only from evidence produced in stages 1-7. Omit unknown signals rather than scoring them as zero, state confidence, preserve the label-neutral input as `spec/data/vitia-game-experience-input.json`, run Vitia's `audit_game_experience.py`, and preserve its raw JSON as `spec/data/vitia-game-experience-audit.json`.
 - Trace onboarding, core loop, decisions, feedback, error recovery, accessibility, information density, and long-session fatigue. Include the action-discovery chain, first-stage/peak-stage continuity, and the four game-experience lenses: play promise, challenge and learning, player agency and fairness, and repeat value without compulsion.
+- Add the two required UX scores. The public-response score is a transparent AI simulation; never present it as survey, review, sales, or telemetry evidence.
 - Connect every proposal to a finding from stages 1-7 and state expected impact, risk, cost band, and validation method.
 - Follow the exact source, command, failure, and stage-boundary rules in [references/vitia-ux-integration.md](references/vitia-ux-integration.md). If the reviewed Vitia source or required audit code cannot be verified, mark stage 8 `blocked`; do not silently downgrade it to a generic UX review.
 

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "project": "ProjectName",
   "generatedAt": "2026-07-19T12:00:00+09:00",
   "executiveSummary": {
@@ -10,13 +10,29 @@
   },
   "additionalAnalyses": [],
   "aiFormatScores": [
-    { "label": "仕様整合性", "score": 7, "maxScore": 10, "rationale": "評価根拠。", "sourceRefs": ["spec/plan/09-aiformat-architecture-review.md"], "missingInformation": [], "missingImplementation": [] }
+    { "label": "仕様整合性", "score": 7, "maxScore": 10, "rationale": "評価根拠。", "sourceRefs": ["spec/plan/09-aiformat-architecture-review.md"], "averageImprovement": { "decision": "hold", "proposal": "現状を維持する。", "rationale": "スコアと変更リスクを比較し、平均的な変更が利益にならないため。" }, "missingInformation": [], "missingImplementation": [] }
   ],
   "vitiaScores": [
-    { "label": "差別化", "score": 8, "maxScore": 10, "rationale": "市場優位性の根拠。", "sourceRefs": ["spec/plan/11-vitia-marketability.md"], "marketAdvantage": true, "missingInformation": [], "missingImplementation": [] }
+    { "label": "差別化", "score": 8, "maxScore": 10, "rationale": "市場優位性の根拠。", "sourceRefs": ["spec/plan/11-vitia-marketability.md"], "marketAdvantage": true, "averageImprovement": { "decision": "hold", "proposal": "差別化の核を維持する。", "rationale": "十分なスコアがあり、要素追加は訴求を薄めるため。" }, "missingInformation": [], "missingImplementation": [] }
+  ],
+  "uxEvaluation": {
+    "publicResponseSimulation": {
+      "audienceModel": "対象ジャンルを知る一般的な初見プレイヤー",
+      "assumptions": ["代表的な導線と主要演出を初見で体験する"],
+      "limitations": ["実ユーザー調査や販売実績ではなく、AIによる平均反応のシミュレーションである"]
+    },
+    "scores": [
+      { "id": "core-implementation-alignment", "label": "体験設計のコアと実装の方向一致", "score": 7, "maxScore": 10, "rationale": "コア体験と実装証拠の方向を照合した結果。", "sourceRefs": ["spec/plan/10-ux-review.md"], "averageImprovement": { "decision": "improve", "proposal": "コア体験から外れる導線を一つ整理する。", "rationale": "中位以上だが方向の不一致が一部に残るため。" }, "missingInformation": [], "missingImplementation": [] },
+      { "id": "expression-conviction-performance", "label": "表現の納得性・パフォーマンス", "score": 6, "maxScore": 10, "rationale": "入力、反応、演出の一体感を平均反応として診断した結果。", "sourceRefs": ["spec/plan/10-ux-review.md"], "averageImprovement": { "decision": "improve", "proposal": "主要成功時の反応を一段明確にする。", "rationale": "納得性を損なわず平均的な体感を改善できるため。" }, "missingInformation": [], "missingImplementation": [] }
+    ]
+  },
+  "playStructureScores": [
+    { "id": "idea", "label": "発想", "score": 8, "maxScore": 10, "rationale": "辞書外要素と類似性の薄い組み合わせがある。", "sourceRefs": ["spec/plan/03-ludus-analysis.md"], "averageImprovement": { "decision": "hold", "proposal": "発想を追加せず検証する。", "rationale": "追加は焦点を弱める可能性があるため。" }, "missingInformation": [], "missingImplementation": [] },
+    { "id": "structure", "label": "構造", "score": 7, "maxScore": 10, "rationale": "ゲームループは成立し、軽微な無駄だけが残る。", "sourceRefs": ["spec/plan/08-mechanics-economy.md"], "averageImprovement": { "decision": "improve", "proposal": "重複する一工程を統合する。", "rationale": "ループを変えずに冗長性を減らせるため。" }, "missingInformation": [], "missingImplementation": [] },
+    { "id": "scalability", "label": "量産性", "score": 6, "maxScore": 10, "rationale": "内部経済から派生できる遊びの変種が限定的。", "sourceRefs": ["spec/plan/08-mechanics-economy.md"], "averageImprovement": { "decision": "improve", "proposal": "既存資源の変換規則を一種類追加する。", "rationale": "新システムを増やさず変種を作れるため。" }, "missingInformation": [], "missingImplementation": [] }
   ],
   "ludus": {
-    "novelty": { "score": 6, "maxScore": 10, "rationale": "既存要素の組み合わせに関する評価。", "sourceRefs": ["spec/plan/03-ludus-analysis.md"], "missingInformation": [], "missingImplementation": [] },
+    "novelty": { "score": 6, "maxScore": 10, "rationale": "既存要素の組み合わせに関する評価。", "sourceRefs": ["spec/plan/03-ludus-analysis.md"], "averageImprovement": { "decision": "improve", "proposal": "既存の核を保った小さな組み合わせ検証を行う。", "rationale": "新規性が中位で、低コスト検証の余地があるため。" }, "missingInformation": [], "missingImplementation": [] },
     "recommendedImplementations": [
       { "title": "選択結果の予告", "dictionaryEntries": ["choice.telegraph"], "proposal": "分岐前に結果の種類を表示する。", "uxConnection": "意思決定の納得感と学習可能性を高める。", "priority": "高", "missingInformation": [], "missingImplementation": [] }
     ]

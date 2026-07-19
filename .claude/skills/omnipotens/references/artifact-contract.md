@@ -90,6 +90,8 @@ When any `service.*` option is selected, generate `omnipotens-service-evidence-c
 - The final report must include only available artifacts and link specialized interactive HTML without rewriting it.
 - Every analysis item must end with missing information and missing implementation. AI Format and Vitia scores must use tables; Vitia rows are ordered by normalized score descending and market advantages are bold.
 - Every project must include a Ludus novelty evaluation and at least one dictionary-derived implementation proposal explicitly connected to UX.
+- Every scored item must contain a score-aware `improve` or `hold` decision and an honest, proportionate average-improvement rationale. Do not force changes to already coherent work.
+- Every project must include the two fixed UX simulation scores and the three fixed play-structure scores defined in `report-format.md`.
 - Record every included source path and SHA-256 hash in `omnipotens-final.manifest.json`.
 
 ## Stage 8 Vitia-backed UX contract

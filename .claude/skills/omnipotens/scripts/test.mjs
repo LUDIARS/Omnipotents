@@ -8,9 +8,15 @@ import { renderMarkdown } from './lib/markdown.mjs';
 import { runReportHardeningTests } from './test-report-hardening.mjs';
 import { runReportPublicationTests } from './test-report-publication.mjs';
 import { writeAnalysisSummaryFixture } from './test-fixtures.mjs';
+import { normalizeAnalysisSummary } from './lib/analysis-summary.mjs';
 
 assert.match(renderMarkdown('# 見出し\n\n| A | B |\n|---|---|\n| 1 | **強調** |'), /class="table-scroll"/);
 assert.doesNotMatch(renderMarkdown('<script>alert(1)</script>'), /<script>/);
+const documentedSummary = JSON.parse(await readFile(
+  new URL('../references/omnipotens-summary.example.json', import.meta.url),
+  'utf8',
+));
+assert.equal(normalizeAnalysisSummary(documentedSummary, 'ProjectName').schemaVersion, 2);
 
 const root = await mkdtemp(join(tmpdir(), 'omnipotens-'));
 try {
@@ -38,6 +44,12 @@ try {
   assert.match(html, /architecture-review\.html/);
   assert.match(html, /学生・初学者向け/);
   assert.match(html, /Vitia 市場性スコア（高い順）/);
+  assert.match(html, /遊びの構造スコア/);
+  assert.match(html, /UXスコア（AI平均反応シミュレーション）/);
+  assert.match(html, /体験設計のコアと実装の方向一致/);
+  assert.match(html, /表現の納得性・パフォーマンス/);
+  assert.match(html, /平均的改善提案/);
+  assert.match(html, /現状維持/);
   assert.ok(html.indexOf('訴求力') < html.indexOf('差別化'));
   assert.match(html, /class="advantage"/);
   assert.match(html, /querySelector\('button\[data-theme\]'\)/);
@@ -50,7 +62,12 @@ try {
   assert.ok(manifest.files.every((item) => /^[a-f0-9]{64}$/.test(item.sha256)));
   assert.equal(manifest.schemaVersion, 3);
   const summary = JSON.parse(await readFile(result.summary, 'utf8'));
+  assert.equal(summary.schemaVersion, 2);
   assert.equal(summary.vitiaScores[0].label, '訴求力');
+  assert.deepEqual(summary.playStructureScores.map((item) => item.id), ['idea', 'structure', 'scalability']);
+  assert.deepEqual(summary.uxEvaluation.scores.map((item) => item.id), [
+    'core-implementation-alignment', 'expression-conviction-performance',
+  ]);
 
   const fallbackRoot = join(root, 'fallback');
   await mkdir(join(fallbackRoot, 'spec'), { recursive: true });

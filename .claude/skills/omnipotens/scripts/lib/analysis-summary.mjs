@@ -4,6 +4,15 @@ const REQUIRED_DIRECTIONS = Object.freeze([
   ['ux', 'UX'],
   ['market', '市場分析'],
 ]);
+const UX_DIMENSIONS = Object.freeze([
+  ['core-implementation-alignment', '体験設計のコアと実装の方向一致'],
+  ['expression-conviction-performance', '表現の納得性・パフォーマンス'],
+]);
+const PLAY_STRUCTURE_DIMENSIONS = Object.freeze([
+  ['idea', '発想'],
+  ['structure', '構造'],
+  ['scalability', '量産性'],
+]);
 
 function object(value, label) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error(`${label} must be an object.`);
@@ -20,6 +29,12 @@ function texts(value, label) {
   return value.map((item, index) => text(item, `${label}[${index}]`));
 }
 
+function nonEmptyTexts(value, label) {
+  const items = texts(value, label);
+  if (items.length === 0) throw new Error(`${label} must not be empty.`);
+  return items;
+}
+
 function score(value, label) {
   if (!Number.isFinite(value) || value < 0) throw new Error(`${label} must be a non-negative number.`);
   return value;
@@ -29,6 +44,18 @@ function completeness(raw, label) {
   return {
     missingInformation: texts(raw.missingInformation, `${label}.missingInformation`),
     missingImplementation: texts(raw.missingImplementation, `${label}.missingImplementation`),
+  };
+}
+
+function averageImprovement(rawValue, label) {
+  const raw = object(rawValue, label);
+  if (!['improve', 'hold'].includes(raw.decision)) {
+    throw new Error(`${label}.decision must be 'improve' or 'hold'.`);
+  }
+  return {
+    decision: raw.decision,
+    proposal: text(raw.proposal, `${label}.proposal`),
+    rationale: text(raw.rationale, `${label}.rationale`),
   };
 }
 
@@ -45,25 +72,54 @@ function narrative(rawValue, label, expectedId, expectedTitle) {
   };
 }
 
+function scoreRow(rawValue, rowLabel, { market = false, expectedId, expectedTitle } = {}) {
+  const raw = object(rawValue, rowLabel);
+  const current = score(raw.score, `${rowLabel}.score`);
+  const maximum = score(raw.maxScore, `${rowLabel}.maxScore`);
+  if (maximum === 0 || current > maximum) throw new Error(`${rowLabel}.score must be between 0 and maxScore.`);
+  if (expectedId && raw.id !== expectedId) throw new Error(`${rowLabel}.id must be '${expectedId}'.`);
+  return {
+    ...(expectedId ? { id: expectedId } : {}),
+    label: expectedTitle || text(raw.label, `${rowLabel}.label`),
+    score: current,
+    maxScore: maximum,
+    rationale: text(raw.rationale, `${rowLabel}.rationale`),
+    sourceRefs: texts(raw.sourceRefs, `${rowLabel}.sourceRefs`),
+    ...(market ? { marketAdvantage: raw.marketAdvantage === true } : {}),
+    averageImprovement: averageImprovement(raw.averageImprovement, `${rowLabel}.averageImprovement`),
+    ...completeness(raw, rowLabel),
+  };
+}
+
 function scoreRows(value, label, { market = false } = {}) {
   if (!Array.isArray(value) || value.length === 0) throw new Error(`${label} must be a non-empty array.`);
-  const rows = value.map((rawValue, index) => {
-    const rowLabel = `${label}[${index}]`;
-    const raw = object(rawValue, rowLabel);
-    const current = score(raw.score, `${rowLabel}.score`);
-    const maximum = score(raw.maxScore, `${rowLabel}.maxScore`);
-    if (maximum === 0 || current > maximum) throw new Error(`${rowLabel}.score must be between 0 and maxScore.`);
-    return {
-      label: text(raw.label, `${rowLabel}.label`),
-      score: current,
-      maxScore: maximum,
-      rationale: text(raw.rationale, `${rowLabel}.rationale`),
-      sourceRefs: texts(raw.sourceRefs, `${rowLabel}.sourceRefs`),
-      ...(market ? { marketAdvantage: raw.marketAdvantage === true } : {}),
-      ...completeness(raw, rowLabel),
-    };
-  });
+  const rows = value.map((rawValue, index) => scoreRow(rawValue, `${label}[${index}]`, { market }));
   return market ? rows.sort((left, right) => (right.score / right.maxScore) - (left.score / left.maxScore)) : rows;
+}
+
+function dimensionScores(value, label, dimensions) {
+  if (!Array.isArray(value) || value.length !== dimensions.length) {
+    throw new Error(`${label} must contain exactly ${dimensions.length} dimensions.`);
+  }
+  const byId = new Map(value.map((item, index) => [object(item, `${label}[${index}]`).id, item]));
+  if (byId.size !== dimensions.length) throw new Error(`${label} contains duplicate dimension ids.`);
+  return dimensions.map(([id, title]) => scoreRow(byId.get(id), `${label}.${id}`, {
+    expectedId: id,
+    expectedTitle: title,
+  }));
+}
+
+function uxEvaluation(rawValue) {
+  const raw = object(rawValue, 'uxEvaluation');
+  const simulation = object(raw.publicResponseSimulation, 'uxEvaluation.publicResponseSimulation');
+  return {
+    publicResponseSimulation: {
+      audienceModel: text(simulation.audienceModel, 'uxEvaluation.publicResponseSimulation.audienceModel'),
+      assumptions: nonEmptyTexts(simulation.assumptions, 'uxEvaluation.publicResponseSimulation.assumptions'),
+      limitations: nonEmptyTexts(simulation.limitations, 'uxEvaluation.publicResponseSimulation.limitations'),
+    },
+    scores: dimensionScores(raw.scores, 'uxEvaluation.scores', UX_DIMENSIONS),
+  };
 }
 
 function ludus(rawValue) {
@@ -79,6 +135,7 @@ function ludus(rawValue) {
       maxScore: score(novelty.maxScore, 'ludus.novelty.maxScore'),
       rationale: text(novelty.rationale, 'ludus.novelty.rationale'),
       sourceRefs: texts(novelty.sourceRefs, 'ludus.novelty.sourceRefs'),
+      averageImprovement: averageImprovement(novelty.averageImprovement, 'ludus.novelty.averageImprovement'),
       ...completeness(novelty, 'ludus.novelty'),
     },
     recommendedImplementations: recommendations.map((value, index) => {
@@ -98,7 +155,7 @@ function ludus(rawValue) {
 
 export function normalizeAnalysisSummary(rawValue, projectTitle) {
   const raw = object(rawValue, 'Omnipotens analysis summary');
-  if (raw.schemaVersion !== 1) throw new Error('Omnipotens analysis summary schemaVersion must be 1.');
+  if (raw.schemaVersion !== 2) throw new Error('Omnipotens analysis summary schemaVersion must be 2.');
   const directions = object(raw.executiveSummary, 'executiveSummary');
   const normalizedDirections = Object.fromEntries(REQUIRED_DIRECTIONS.map(([id, title]) => [
     id,
@@ -107,21 +164,19 @@ export function normalizeAnalysisSummary(rawValue, projectTitle) {
   const additional = raw.additionalAnalyses ?? [];
   if (!Array.isArray(additional)) throw new Error('additionalAnalyses must be an array.');
   const normalized = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     project: text(raw.project || projectTitle, 'project'),
     generatedAt: typeof raw.generatedAt === 'string' ? raw.generatedAt : '',
     executiveSummary: normalizedDirections,
     additionalAnalyses: additional.map((item, index) => narrative(item, `additionalAnalyses[${index}]`)),
     aiFormatScores: scoreRows(raw.aiFormatScores, 'aiFormatScores'),
     vitiaScores: scoreRows(raw.vitiaScores, 'vitiaScores', { market: true }),
+    uxEvaluation: uxEvaluation(raw.uxEvaluation),
+    playStructureScores: dimensionScores(raw.playStructureScores, 'playStructureScores', PLAY_STRUCTURE_DIMENSIONS),
     ludus: ludus(raw.ludus),
   };
   if (normalized.ludus.novelty.maxScore === 0 || normalized.ludus.novelty.score > normalized.ludus.novelty.maxScore) {
     throw new Error('ludus.novelty.score must be between 0 and maxScore.');
   }
   return normalized;
-}
-
-export function analysisSummarySourcePath(project) {
-  return `${project}/spec/data/omnipotens-summary.json`;
 }
