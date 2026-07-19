@@ -32,7 +32,7 @@ internal sealed class PlannerActionsControl : UserControl
         _status.AutoEllipsis = true;
         _status.AutoSize = true;
         _status.Margin = new Padding(12, 8, 3, 3);
-        _status.Text = "プロジェクト本体フォルダを指定してください。";
+        _status.Text = "解析対象フォルダを選択してください。";
 
         var buttonRow = new FlowLayoutPanel
         {

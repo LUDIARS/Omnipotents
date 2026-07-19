@@ -89,7 +89,7 @@ Windows用プランナーをビルドすると、基本11段階とサービス14
 ./release/omnipotens-analysis-planner/Omnipotens.AnalysisPlanner.exe
 ```
 
-plannerで分析対象project本体を指定すると、保存先は`<project>/spec/data/omnipotens-run-plan.json`になります。実行依頼用promptはclipboardへコピーできます。planner自身は分析toolやserviceを起動せず、外部送信もしません。Diはpresetから除外され、明示選択が必要です。
+plannerでは、起動時のカレントディレクトリを自動採用せず、既存の解析対象フォルダを明示選択します。保存先は`<project>/spec/data/omnipotens-run-plan.json`です。repositoryのcloneが必要な場合は、先に承認済みルートディレクトリ以下へcloneし、そのclone先フォルダをplannerで選択します。planner自身はclone、分析toolやserviceの起動、外部送信を行いません。実行依頼用promptはclipboardへコピーできます。Diはpresetから除外され、明示選択が必要です。
 
 service分析を選択したら、使用するrubric、source metadata、versioned factをprojectへmaterializeします。
 

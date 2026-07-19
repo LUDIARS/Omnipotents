@@ -61,7 +61,7 @@ internal sealed class PlannerForm : Form
         _actions.SaveRequested += HandleSaveRequested;
         _actions.CopyPromptRequested += HandleCopyPromptRequested;
 
-        _configuration.ProjectRoot = new ProjectRootLocator().FindInitialRoot();
+        _configuration.ProjectRoot = string.Empty;
         Shown += (_, _) => LoadCatalog(showErrorDialog: true);
     }
 
@@ -69,7 +69,7 @@ internal sealed class PlannerForm : Form
     {
         using var dialog = new FolderBrowserDialog
         {
-            Description = "分析対象のプロジェクト本体フォルダを選択してください。",
+            Description = "解析対象として使用する既存のプロジェクトフォルダを選択してください。",
             ShowNewFolderButton = false,
             UseDescriptionForTitle = true,
         };
@@ -80,7 +80,9 @@ internal sealed class PlannerForm : Form
 
         if (dialog.ShowDialog(this) == DialogResult.OK)
         {
-            _configuration.ProjectRoot = dialog.SelectedPath;
+            _configuration.ProjectRoot = Path.TrimEndingDirectorySeparator(
+                Path.GetFullPath(dialog.SelectedPath));
+            _actions.SetStatus($"解析対象フォルダを選択しました: {_configuration.ProjectRoot}");
         }
     }
 

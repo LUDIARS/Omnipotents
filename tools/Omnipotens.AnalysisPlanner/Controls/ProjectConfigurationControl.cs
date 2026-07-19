@@ -18,7 +18,7 @@ internal sealed class ProjectConfigurationControl : UserControl
         var browseButton = new Button
         {
             AutoSize = true,
-            Text = "参照...",
+            Text = "対象フォルダを選択...",
         };
         browseButton.Click += (_, _) => BrowseRequested?.Invoke(this, EventArgs.Empty);
 
@@ -30,7 +30,8 @@ internal sealed class ProjectConfigurationControl : UserControl
         loadButton.Click += (_, _) => CatalogLoadRequested?.Invoke(this, EventArgs.Empty);
 
         _projectRoot.Dock = DockStyle.Fill;
-        _projectRoot.AccessibleName = "プロジェクト本体フォルダ";
+        _projectRoot.ReadOnly = true;
+        _projectRoot.AccessibleName = "解析対象フォルダ";
 
         _classification.DropDownStyle = ComboBoxStyle.DropDownList;
         _classification.Width = 180;
@@ -63,7 +64,7 @@ internal sealed class ProjectConfigurationControl : UserControl
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
-        layout.Controls.Add(CreateLabel("プロジェクト本体:"), 0, 0);
+        layout.Controls.Add(CreateLabel("解析対象フォルダ:"), 0, 0);
         layout.Controls.Add(_projectRoot, 1, 0);
         layout.Controls.Add(browseButton, 2, 0);
         layout.Controls.Add(loadButton, 3, 0);
