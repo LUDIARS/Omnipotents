@@ -5,6 +5,7 @@ import { isPathContained, resolveContainedRegularFile } from './input-path-bound
 
 const TEXT_SAMPLE_BYTES = 8192;
 const UTF8_DECODER = new TextDecoder('utf-8', { fatal: true });
+const SHIFT_JIS_DECODER = new TextDecoder('shift_jis', { fatal: true });
 
 function relativeDisplayPath(workspacePath, filePath) {
   return relative(workspacePath, filePath).replaceAll('\\', '/');
@@ -46,6 +47,37 @@ function decodeUtf8(bytes) {
   }
 }
 
+function isShiftJisLead(byte) {
+  return (byte >= 0x81 && byte <= 0x9f) || (byte >= 0xe0 && byte <= 0xfc);
+}
+
+function isShiftJisTrail(byte) {
+  return (byte >= 0x40 && byte <= 0x7e) || (byte >= 0x80 && byte <= 0xfc);
+}
+
+function decodeShiftJis(bytes) {
+  let hasJapaneseByte = false;
+  for (let index = 0; index < bytes.length; index += 1) {
+    const byte = bytes[index];
+    if (byte <= 0x7f) continue;
+    if (byte >= 0xa1 && byte <= 0xdf) {
+      hasJapaneseByte = true;
+      continue;
+    }
+    if (!isShiftJisLead(byte) || index + 1 >= bytes.length || !isShiftJisTrail(bytes[index + 1])) {
+      return null;
+    }
+    hasJapaneseByte = true;
+    index += 1;
+  }
+  if (!hasJapaneseByte) return null;
+  try {
+    return SHIFT_JIS_DECODER.decode(bytes);
+  } catch {
+    return null;
+  }
+}
+
 function decodeText(bytes) {
   if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
     return bytes.subarray(2).toString('utf16le');
@@ -60,7 +92,7 @@ function decodeText(bytes) {
     return littleEndian.toString('utf16le');
   }
   if (resemblesBomlessUtf16(bytes)) return null;
-  return decodeUtf8(bytes);
+  return decodeUtf8(bytes) ?? decodeShiftJis(bytes);
 }
 
 async function readPrefix(filePath, size) {

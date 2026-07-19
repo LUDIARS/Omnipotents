@@ -37,6 +37,39 @@ try {
   assert.equal(cleanReceipt.scannedTextFiles, 2);
   assert.equal(cleanReceipt.skippedBinaryFiles, 1);
 
+  const shiftJis = join(root, 'shift-jis');
+  await mkdir(shiftJis, { recursive: true });
+  const japaneseComment = Buffer.from([0x2f, 0x2f, 0x20, 0x93, 0xfa, 0x96, 0x7b, 0x8c, 0xea, 0x0a]);
+  await writeFile(
+    join(shiftJis, 'legacy.cs'),
+    Buffer.concat([japaneseComment, Buffer.from('const string value = "safe";\n', 'ascii')]),
+  );
+  const shiftJisReceipt = await runInputGate(sourceArgs(shiftJis));
+  assert.equal(shiftJisReceipt.scannedTextFiles, 1);
+
+  const shiftJisSecret = join(root, 'shift-jis-secret');
+  await mkdir(shiftJisSecret, { recursive: true });
+  const legacyToken = `ghp_${'ABCDEFGHIJKLMNOPQRSTUVWXYZ123456'}`;
+  await writeFile(
+    join(shiftJisSecret, 'legacy.cs'),
+    Buffer.concat([japaneseComment, Buffer.from(`const token = "${legacyToken}";\n`, 'ascii')]),
+  );
+  await assert.rejects(runInputGate(sourceArgs(shiftJisSecret)), /github-token/);
+
+  const largeText = join(root, 'large-text');
+  await mkdir(largeText, { recursive: true });
+  const largePrefix = Buffer.alloc(2_300_000, 0x61);
+  await writeFile(
+    join(largeText, 'large.asset'),
+    Buffer.concat([largePrefix, Buffer.from(`\ntoken: ${legacyToken}\n`, 'ascii')]),
+  );
+  await assert.rejects(runInputGate(sourceArgs(largeText)), /github-token/);
+
+  const oversizedText = join(root, 'oversized-text');
+  await mkdir(oversizedText, { recursive: true });
+  await writeFile(join(oversizedText, 'too-large.md'), Buffer.alloc(3_145_729, 0x61));
+  await assert.rejects(runInputGate(sourceArgs(oversizedText)), /cannot safely inspect oversized/);
+
   assert.throws(
     () => parseInputGateArgs(['--workspace', clean, '--classifiction', 'internal']),
     /Unknown input gate option/,

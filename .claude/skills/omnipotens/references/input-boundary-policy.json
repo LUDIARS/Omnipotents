@@ -103,7 +103,7 @@
     "makefile",
     "readme"
   ],
-  "maxTextFileBytes": 2097152,
+  "maxTextFileBytes": 3145728,
   "contentPatterns": [
     {
       "id": "private-key",
