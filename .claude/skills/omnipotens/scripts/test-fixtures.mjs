@@ -3,7 +3,10 @@ import { join } from 'node:path';
 
 export function validAnalysisSummary(project = 'Fixture') {
   const section = (id, title) => ({
-    id, title, summary: `${title}の要点を一般読者向けに説明します。`,
+    id,
+    title,
+    beginner: `${title}の要点を初学者向けに説明します。`,
+    highResolution: `${title}の根拠と判断を詳しく説明します。`,
     missingInformation: [], missingImplementation: [],
   });
   const score = (label, value, marketAdvantage = false, id) => ({
@@ -14,18 +17,20 @@ export function validAnalysisSummary(project = 'Fixture') {
     missingInformation: [], missingImplementation: [],
   });
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     project,
-    executiveAudience: {
-      assumedAcademicDeviation: 50,
-      audience: '専門知識のない一般読者と高校生を想定します。',
-      writingPolicy: ['専門用語を日常語で言い換えます。'],
-    },
     overallAssessment: {
       label: '条件付きで有望', score: 7, maxScore: 10,
-      summary: '遊びの核は明確ですが、初見説明に改善余地があります。',
-      strengths: ['中心の遊びと実装が一致しています。'],
-      priorityIssues: ['初見で結果を予測できる説明が不足しています。'],
+      beginner: {
+        summary: '遊びの核は明確ですが、初見説明に改善余地があります。',
+        strengths: ['中心の遊びと実装が一致しています。'],
+        priorityIssues: ['初見で結果を予測できる説明が不足しています。'],
+      },
+      highResolution: {
+        summary: 'コアメカニクスと実装は整合する一方、予測可能性の実証が不足しています。',
+        strengths: ['仕様と実装の主要責務が一致しています。'],
+        priorityIssues: ['解決順序の可視化と実測が不足しています。'],
+      },
       confidence: '中', sourceRefs: ['spec/main.md'],
       missingInformation: [], missingImplementation: [],
     },

@@ -10,9 +10,9 @@ Produce an evidence-linked review that connects game intent, rules, implementati
 ## Use the stable report format
 
 - Write analysis prose primarily in Japanese. Explain a necessary English proper noun or technical term in Japanese on first use.
-- Write one integrated executive summary for general readers and high-school students with an assumed academic deviation value of 50. Use short sentences, explain necessary terms in ordinary Japanese, and do not create a second high-resolution reading profile.
+- Write one integrated executive summary with two complete display profiles: `学生・初学者向け` and `高解像度データ`. Switching profiles must replace the overall assessment and every item summary together.
 - Put an honest overall assessment at the start of the executive summary, followed by short summaries for `遊びのロジック`, `コード内容`, `UX`, `市場分析`, and every user-requested additional analysis.
-- Generate beginner-friendly prose only in the integrated executive summary. Keep every layer report as technical raw analysis data without a duplicate beginner/high-resolution pair.
+- Keep both reading profiles inside the integrated executive summary. Keep every layer report as one technical raw-analysis source without duplicating layer documents.
 - Insert the visible boundary heading `各レイヤでの解析データは以下` between the integrated executive summary and all score tables, evidence, and layer reports.
 - End every analysis item with `不足情報` and then `不足実装`. Never omit either field.
 - Put AI Format scores in a table. Put Vitia scores in a table sorted by normalized score descending, and bold rows identified as a market advantage.
@@ -21,7 +21,7 @@ Produce an evidence-linked review that connects game intent, rules, implementati
 - Score UX on exactly two axes: alignment between the core experience design and implementation, and the conviction/performance of expression (the “this feels right” response). Label this as an AI simulation of average public response, not observed audience data, and record its audience model, assumptions, and limitations.
 - Score play structure on exactly three axes: idea, structure, and scalability. Judge idea by dictionary-external play and low-similarity mashups; structure by the mechanics-driven loop and avoidable structure; scalability by whether mechanics and the internal economy can produce meaningful play variations.
 - Always evaluate novelty in the Ludus analysis. Derive at least one implementation proposal from the play dictionary and connect it explicitly to UX.
-- Record the overall assessment and item summaries in `spec/data/omnipotens-summary.json`. Stage 11 validates it, publishes `report/omnipotens-summary.json`, and renders the single reader-friendly summary before the raw score and evidence layers. Follow [references/report-format.md](references/report-format.md).
+- Record both complete executive-summary profiles in `spec/data/omnipotens-summary.json`. Stage 11 validates it, publishes `report/omnipotens-summary.json`, and renders one switchable summary area before the raw score and evidence layers. Follow [references/report-format.md](references/report-format.md).
 
 ## Start the run
 

@@ -4,10 +4,9 @@
 
 ## Required content
 
-- `schemaVersion`: `3`
+- `schemaVersion`: `4`
 - `project`: displayed project title
-- `executiveAudience`: fixes the intended reader at academic deviation value `50`, describes general readers and high-school students, and lists the plain-language writing policy
-- `overallAssessment`: the first displayed conclusion, with label, score, summary, strengths, priority issues, confidence, sources, missing information, and missing implementation
+- `overallAssessment`: the first displayed conclusion, with shared score metadata plus `beginner` and `highResolution` summary, strengths, and priority issues
 - `executiveSummary`: exactly `play-logic`, `code`, `ux`, and `market`
 - `additionalAnalyses`: one item for every additional analysis requested by the user; otherwise `[]`
 - `aiFormatScores`: one or more score rows
@@ -23,9 +22,9 @@ Every score row and `ludus.novelty` also has `averageImprovement`: `decision` is
 
 The UX public response is an AI average-reaction simulation, not measured user, review, sales, or telemetry data. Record the simulated audience, assumptions, and limitations beside the scores.
 
-Each executive-summary direction and additional analysis has one `summary`. Write it for a reader with no specialist background and a high-school student, assuming an academic deviation value of 50. Lead with the conclusion, keep sentences short, and explain necessary English or technical terms in ordinary Japanese. Do not add `beginner` or `highResolution` variants.
+Each executive-summary direction and additional analysis has `beginner` and `highResolution` text. The first explains the judgment in plain Japanese; the second preserves technical detail, evidence density, and exact terminology. Both profiles cover the complete overall assessment and every summary direction.
 
-The deterministic packager publishes `report/omnipotens-summary.json`. It renders the overall assessment and item summaries once, then inserts `各レイヤでの解析データは以下` before play-structure, UX, AI Format, Vitia, Ludus, evidence, and stage data. Only the integrated executive summary is beginner-friendly; the following material is technical raw analysis data.
+The deterministic packager publishes `report/omnipotens-summary.json`. It renders buttons that switch the complete executive summary between `beginner` and `highResolution`, then inserts `各レイヤでの解析データは以下` before play-structure, UX, AI Format, Vitia, Ludus, evidence, and stage data.
 
 Do not include a separate `00. エグゼクティブサマリ` section in `omnipotens-report-layout.json`. The packager ignores that exact legacy section during migration so the summary is never duplicated.
 

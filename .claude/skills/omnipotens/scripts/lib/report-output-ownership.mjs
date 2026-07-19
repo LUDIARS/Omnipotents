@@ -20,7 +20,7 @@ function pathKey(value) {
 }
 
 function validateOwnershipManifest(manifest, { reportsDir, finalOutput, stagesDir, manifestPath, summaryOutputPath, summaryExists }) {
-  if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest) || ![2, 3].includes(manifest.schemaVersion)) {
+  if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest) || ![2, 3, 4].includes(manifest.schemaVersion)) {
     throw new Error(`Existing report outputs have no supported ownership manifest: ${manifestPath}`);
   }
   if (manifest.output !== basename(finalOutput)) {
@@ -28,7 +28,7 @@ function validateOwnershipManifest(manifest, { reportsDir, finalOutput, stagesDi
       `Existing report manifest owns '${String(manifest.output)}', not requested output '${basename(finalOutput)}'.`,
     );
   }
-  if (manifest.schemaVersion === 3 && (manifest.summary !== basename(summaryOutputPath) || !summaryExists)) {
+  if ([3, 4].includes(manifest.schemaVersion) && (manifest.summary !== basename(summaryOutputPath) || !summaryExists)) {
     throw new Error(`Existing report ownership manifest has no owned summary: ${manifestPath}`);
   }
   if (manifest.schemaVersion === 2 && summaryExists) {

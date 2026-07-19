@@ -16,7 +16,7 @@ const documentedSummary = JSON.parse(await readFile(
   new URL('../references/omnipotens-summary.example.json', import.meta.url),
   'utf8',
 ));
-assert.equal(normalizeAnalysisSummary(documentedSummary, 'ProjectName').schemaVersion, 3);
+assert.equal(normalizeAnalysisSummary(documentedSummary, 'ProjectName').schemaVersion, 4);
 
 const root = await mkdtemp(join(tmpdir(), 'omnipotens-'));
 try {
@@ -41,17 +41,18 @@ try {
   assert.match(html, /--gold:#9a6b1f/);
   assert.match(html, /エグゼクティブサマリ/);
   assert.match(html, /総合評価：条件付きで有望/);
-  assert.match(html, /一般読者・高校生向け/);
-  assert.match(html, /偏差値50/);
+  assert.match(html, /学生・初学者向け/);
+  assert.match(html, /高解像度データ/);
+  assert.match(html, /data-profile-button="beginner"/);
+  assert.match(html, /data-profile="highResolution" hidden/);
   assert.match(html, /各レイヤでの解析データは以下/);
   assert.ok(html.indexOf('総合評価：条件付きで有望') < html.indexOf('各項目のまとめ'));
   assert.ok(html.indexOf('各項目のまとめ') < html.indexOf('各レイヤでの解析データは以下'));
   assert.ok(html.indexOf('各レイヤでの解析データは以下') < html.indexOf('遊びの構造スコア'));
   assert.match(html, /メカニクス解析/);
   assert.match(html, /architecture-review\.html/);
-  assert.doesNotMatch(html, /学生・初学者向け/);
-  assert.doesNotMatch(html, /高解像度データ/);
-  assert.doesNotMatch(html, /data-profile/);
+  assert.doesNotMatch(html, /偏差値50/);
+  assert.doesNotMatch(html, /一般読者・高校生向け/);
   assert.doesNotMatch(html, /根拠付きの概要です/);
   assert.match(html, /Vitia 市場性スコア（高い順）/);
   assert.match(html, /遊びの構造スコア/);
@@ -71,11 +72,12 @@ try {
   const manifest = JSON.parse(await readFile(result.manifest, 'utf8'));
   assert.ok(manifest.files.length >= 4);
   assert.ok(manifest.files.every((item) => /^[a-f0-9]{64}$/.test(item.sha256)));
-  assert.equal(manifest.schemaVersion, 3);
+  assert.equal(manifest.schemaVersion, 4);
   assert.deepEqual(manifest.stageReports.map((item) => item.stageId), ['04']);
   const summary = JSON.parse(await readFile(result.summary, 'utf8'));
-  assert.equal(summary.schemaVersion, 3);
-  assert.equal(summary.executiveAudience.assumedAcademicDeviation, 50);
+  assert.equal(summary.schemaVersion, 4);
+  assert.equal(summary.overallAssessment.beginner.summary, '遊びの核は明確ですが、初見説明に改善余地があります。');
+  assert.equal(summary.overallAssessment.highResolution.summary, 'コアメカニクスと実装は整合する一方、予測可能性の実証が不足しています。');
   assert.equal(summary.vitiaScores[0].label, '訴求力');
   assert.deepEqual(summary.playStructureScores.map((item) => item.id), ['idea', 'structure', 'scalability']);
   assert.deepEqual(summary.uxEvaluation.scores.map((item) => item.id), [

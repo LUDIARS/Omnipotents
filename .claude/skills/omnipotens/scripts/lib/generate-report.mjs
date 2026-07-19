@@ -94,7 +94,7 @@ function renderGeneration({ projectTitle, stages, evidence, reportsDir, stagesDi
     sha256: item.sha256,
   }));
   const manifest = {
-    schemaVersion: 3,
+    schemaVersion: 4,
     project: projectTitle,
     ...(generatedAt ? { generatedAt } : {}),
     output: basename(finalOutput),
